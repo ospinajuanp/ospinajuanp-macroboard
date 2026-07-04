@@ -105,6 +105,12 @@ export default function AdminPage() {
     setIsNewButton(false);
   };
 
+  const handleQuickDelete = (buttonId: string) => {
+    const newButtons = buttons.filter((b) => b.id !== buttonId);
+    setButtons(newButtons);
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
+  };
+
   const handleDeleteButton = () => {
     if (!selectedButtonId) return;
 
@@ -141,19 +147,26 @@ export default function AdminPage() {
             {buttons.map((button) => {
               const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
               return (
-                <button
-                  key={button.id}
-                  onClick={() => handleButtonClick(button)}
-                  className={`
-                    w-16 h-16 rounded-xl flex flex-col items-center justify-center
-                    transition-all duration-150 font-medium text-xl
-                    ${button.color || 'bg-deckstream-primary'}
-                    ${selectedButtonId === button.id ? 'ring-4 ring-white' : ''}
-                  `}
-                >
-                  <span>{iconOption?.label || '?'}</span>
-                  {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
-                </button>
+                <div key={button.id} className="relative group">
+                  <button
+                    onClick={() => handleButtonClick(button)}
+                    className={`
+                      w-16 h-16 rounded-xl flex flex-col items-center justify-center
+                      transition-all duration-150 font-medium text-xl
+                      ${button.color || 'bg-deckstream-primary'}
+                      ${selectedButtonId === button.id ? 'ring-4 ring-white' : ''}
+                    `}
+                  >
+                    <span>{iconOption?.label || '?'}</span>
+                    {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleQuickDelete(button.id); }}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    ×
+                  </button>
+                </div>
               );
             })}
             <button
