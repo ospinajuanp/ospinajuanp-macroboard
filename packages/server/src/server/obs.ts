@@ -136,14 +136,27 @@ export class OBSClient {
         throw new Error('No audio inputs found in OBS');
       }
 
-      const micInput = inputs.find(
-        (i: any) =>
-          i.inputName.toLowerCase().includes('mic') ||
-          i.inputName.toLowerCase().includes('audio') ||
-          i.inputName.toLowerCase().includes('microphone')
-      );
+      const micNames = ['mic', 'microphone', 'audio', 'aux', 'sound', 'voice'];
+      const excludeNames = ['desktop', 'speakers', 'system', 'wave', 'Stereo'];
 
-      const targetInput = micInput || inputs[0];
+      let targetInput = inputs.find((i: any) => {
+        const name = i.inputName.toLowerCase();
+        const isMic = micNames.some(m => name.includes(m));
+        const isExcluded = excludeNames.some(e => name.includes(e));
+        return isMic && !isExcluded;
+      });
+
+      if (!targetInput) {
+        targetInput = inputs.find((i: any) => {
+          const name = i.inputName.toLowerCase();
+          return !excludeNames.some(e => name.includes(e));
+        });
+      }
+
+      if (!targetInput) {
+        targetInput = inputs[0];
+      }
+
       console.log('[OBS] Toggling mic:', targetInput.inputName);
 
       await this.obs.call('ToggleInputMute', { inputName: targetInput.inputName });
