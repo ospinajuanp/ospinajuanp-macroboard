@@ -28,7 +28,7 @@ export default function HomePage() {
           <img src={status.qrCode} alt="QR Code" className="mx-auto mb-4 rounded-lg" />
           <p className="text-gray-400 mb-2">O escanea el código QR</p>
           <p className="font-mono text-deckstream-primary bg-gray-700 px-4 py-2 rounded-lg">
-            {status.connectionUrl}
+            {status.connectionUrl}/m
           </p>
           <a
             href="/admin"
