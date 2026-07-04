@@ -41,13 +41,15 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
 
   app.get('/m', async (request, reply) => {
     const clientIndexPath = path.join(clientDistPath, 'index.html');
+    console.log('[HTTP] /m request, clientDistPath:', clientDistPath);
+    console.log('[HTTP] clientIndexPath:', clientIndexPath, 'exists:', fs.existsSync(clientIndexPath));
     if (fs.existsSync(clientIndexPath)) {
       const content = fs.readFileSync(clientIndexPath, 'utf-8');
       return reply.type('text/html').send(content);
     }
     return reply
       .type('text/html')
-      .send('<html><body><h1>ospinajuanp-macroboard</h1><p>Cliente movil no encontrado.</p></body></html>');
+      .send('<html><body><h1>ospinajuanp-macroboard</h1><p>Cliente movil no encontrado. Path: ' + clientIndexPath + '</p></body></html>');
   });
 
   app.get('/admin', async (request, reply) => {

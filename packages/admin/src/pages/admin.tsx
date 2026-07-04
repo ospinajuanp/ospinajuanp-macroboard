@@ -73,7 +73,7 @@ export default function AdminPage() {
       setSelectedButton({ row, column });
       const buttonId = generateButtonId(row, column);
       const existingButton = buttons[buttonId];
-      setEditForm(existingButton || { action: 'HOTKEY', payload: '' });
+      setEditForm(existingButton || { action: 'HOTKEY', payload: '', color: 'bg-deckstream-primary' });
     }
   };
 

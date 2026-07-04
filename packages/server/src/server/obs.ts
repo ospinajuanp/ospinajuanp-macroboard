@@ -167,6 +167,10 @@ export class OBSClient {
     return this.state;
   }
 
+  isConnected(): boolean {
+    return this.state.connected;
+  }
+
   onStateChange(callback: OBSStateCallback): void {
     this.callbacks.push(callback);
   }

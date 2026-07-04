@@ -138,18 +138,24 @@ class DeckStreamServer {
           }
           break;
         case 'OBS_MUTE':
-          if (this.obsClient) {
+          if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleMic();
+          } else {
+            throw new Error('OBS no conectado');
           }
           break;
         case 'OBS_RECORD':
-          if (this.obsClient) {
+          if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleRecord();
+          } else {
+            throw new Error('OBS no conectado');
           }
           break;
         case 'OBS_STREAM':
-          if (this.obsClient) {
+          if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleStream();
+          } else {
+            throw new Error('OBS no conectado');
           }
           break;
         case 'HOTKEY':
