@@ -44,20 +44,36 @@ El servidor se ejecuta en la bandeja del sistema. | The server runs in the syste
 
 ## Instalación desde Código Fuente | Installation from Source
 
-### 1. Clonar el Repositorio | Clone the Repository
+### Orden de Comandos | Command Order
 
 ```bash
+# 1. Clonar y entrar al repo | Clone and enter repo
 git clone https://github.com/ospinajuanp/ospinajuanp-macroboard.git
 cd ospinajuanp-macroboard
-```
 
-### 2. Instalar Dependencias | Install Dependencies
-
-```bash
+# 2. Instalar dependencias | Install dependencies
 pnpm install
+
+# 3. Limpiar builds anteriores | Clean previous builds
+pnpm clean
+
+# 4. Construir todos los paquetes | Build all packages
+pnpm build
+
+# 5. Probar en desarrollo (opcional) | Test in development (optional)
+pnpm dev
+
+# 5b. O probar el .exe localmente | Or test .exe locally
+node packages/server/dist/index.js
+
+# 6. Crear el .exe autocontenido | Create self-contained .exe
+pnpm package
+
+# 7. Crear directorio para el installer | Create installer directory
+pnpm prepare-installer
 ```
 
-### 3. Configurar OBS | Configure OBS
+### Configurar OBS | Configure OBS
 
 1. Abre OBS Studio
 2. Ve a | Go to **Edit → Settings → WebSocket**
@@ -65,7 +81,7 @@ pnpm install
 4. Configura la contraseña | Set password: `Cualquiera1234` (o la que prefieras | or your preferred)
 5. Anota el puerto | Note the port: `4455` (default)
 
-### 4. Configurar config.json
+### Configurar config.json
 
 Crea `packages/server/config.json`:
 
@@ -81,7 +97,7 @@ Crea `packages/server/config.json`:
 }
 ```
 
-### 5. Ejecutar en Desarrollo | Run in Development
+### Ejecutar en Desarrollo | Run in Development
 
 ```bash
 pnpm dev
@@ -118,38 +134,36 @@ Esto hace: | This does:
 
 ### Paso 1: Construir el .exe (si no lo has hecho) | Build the .exe (if not done)
 
+Ya debiste haber ejecutado | You should have already run:
 ```bash
 pnpm package
+pnpm prepare-installer
 ```
 
-### Paso 2: Crear directorio para el installer | Create directory for installer
-
-```bash
-mkdir packages/server/installer
-```
-
-### Paso 3: Descargar e Instalar Inno Setup
+### Paso 2: Descargar e Instalar Inno Setup
 
 Descarga desde | Download from: https://jrsoftware.org/isinfo.php
 
-### Paso 4: Abrir el Script en Inno Setup
+### Paso 3: Abrir el Script en Inno Setup
 
 Abre en Inno Setup el archivo: `packages/server/scripts/installer.iss`
 
-### Paso 5: Compilar | Compile
+### Paso 4: Compilar | Compile
 
 En Inno Setup: **Build → Compile** (o presiona `Ctrl+F9`)
 
-### Paso 6: Obtener el Installer
+### Paso 5: Obtener el Installer
 
 El installer se crea en: | Installer created at:
 ```
 packages/server/installer/ospinajuanp-macroboard-setup.exe
 ```
 
-### Contenido del Script installer.iss | installer.iss Script Contents
+---
 
-El script `installer.iss` incluye: | The script includes:
+### Scripts del Installer | Installer Scripts
+
+El instalador incluye: | The installer includes:
 
 - Instalación en `Program Files`
 - Creación de acceso directo en Menú Inicio | Start Menu shortcut
@@ -236,12 +250,13 @@ packages/
 ## Scripts Disponibles | Available Scripts
 
 ```bash
-pnpm dev          # Ejecutar todos en modo desarrollo | Run all in dev mode
-pnpm build        # Construir todos los paquetes | Build all packages
-pnpm clean        # Limpiar build y config.json | Clean build and config.json
-pnpm lint         # Linting
-pnpm typecheck    # Verificación de tipos | Type checking
-pnpm package      # Crear .exe | Create .exe
+pnpm dev                # Ejecutar todos en modo desarrollo | Run all in dev mode
+pnpm build              # Construir todos los paquetes | Build all packages
+pnpm clean              # Limpiar build y config.json | Clean build and config.json
+pnpm lint               # Linting
+pnpm typecheck          # Verificación de tipos | Type checking
+pnpm package            # Crear .exe | Create .exe
+pnpm prepare-installer   # Crear directorio para el installer | Create installer directory
 ```
 
 ---
