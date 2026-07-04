@@ -10,7 +10,8 @@
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "prepackage": "node scripts/prepare-package.js",
-    "package": "pkg dist/index.js --targets node18-win-x64 --output dist/ospinajuanp-macroboard.exe"
+    "package": "pkg dist/index.js --targets node18-win-x64 --output dist/ospinajuanp-macroboard.exe",
+    "prepare-installer": "node -e \"const fs=require('fs');const path='installer';if(!fs.existsSync(path)){fs.mkdirSync(path,{recursive:true});console.log('Created installer directory');}\""
   },
   "dependencies": {
     "@ospinajuanp-macroboard/shared": "workspace:*",
