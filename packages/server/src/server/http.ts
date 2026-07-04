@@ -76,6 +76,24 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
     return reply.status(404).send('Not found');
   });
 
+  app.get('/_next/:path*', async (request, reply) => {
+    const params = request.params as { path?: string };
+    const filePath = params.path || '';
+    const clientNextPath = path.join(clientDistPath, '_next', filePath);
+    const adminNextPath = path.join(adminDistPath, '_next', filePath);
+    if (fs.existsSync(clientNextPath) && !fs.statSync(clientNextPath).isDirectory()) {
+      const ext = path.extname(clientNextPath);
+      const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
+      return reply.type(contentType).send(fs.readFileSync(clientNextPath));
+    }
+    if (fs.existsSync(adminNextPath) && !fs.statSync(adminNextPath).isDirectory()) {
+      const ext = path.extname(adminNextPath);
+      const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
+      return reply.type(contentType).send(fs.readFileSync(adminNextPath));
+    }
+    return reply.status(404).send('Not found');
+  });
+
   app.get('/api/status', async (request, reply) => {
     const qrDataUrl = await generateQRCode(getConnectionUrl(ip, port));
     return reply.send({
