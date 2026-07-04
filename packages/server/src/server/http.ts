@@ -11,7 +11,7 @@ export interface HTTPServer {
   qrDataUrl: string;
 }
 
-export async function createHTTPServer(port: number, clientDistPath: string): Promise<HTTPServer> {
+export async function createHTTPServer(port: number, clientDistPath: string, adminDistPath: string): Promise<HTTPServer> {
   const app = Fastify({ logger: false });
 
   const ip = getLocalIP();
@@ -40,9 +40,40 @@ export async function createHTTPServer(port: number, clientDistPath: string): Pr
   });
 
   app.get('/admin', async (request, reply) => {
+    const adminIndexPath = path.join(adminDistPath, 'admin.html');
+    if (fs.existsSync(adminIndexPath)) {
+      const content = fs.readFileSync(adminIndexPath, 'utf-8');
+      return reply.type('text/html').send(content);
+    }
     return reply
       .type('text/html')
-      .send('<html><body><h1>Admin</h1><p>Panel de administracion en desarrollo.</p></body></html>');
+      .send('<html><body><h1>Admin</h1><p>Admin no encontrado. Ejecuta build del admin primero.</p></body></html>');
+  });
+
+  app.get('/admin/:path*', async (request, reply) => {
+    const params = request.params as { path?: string };
+    const filePath = params.path || '';
+    const fullPath = path.join(adminDistPath, filePath || 'admin.html');
+    if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
+      const ext = path.extname(fullPath);
+      const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'text/html';
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      return reply.type(contentType).send(content);
+    }
+    return reply.status(404).send('Not found');
+  });
+
+  app.get('/assets/:path*', async (request, reply) => {
+    const params = request.params as { path?: string };
+    const filePath = params.path || '';
+    const fullPath = path.join(clientDistPath, 'assets', filePath);
+    if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
+      const ext = path.extname(fullPath);
+      const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
+      const content = fs.readFileSync(fullPath);
+      return reply.type(contentType).send(content);
+    }
+    return reply.status(404).send('Not found');
   });
 
   app.get('/api/status', async (request, reply) => {

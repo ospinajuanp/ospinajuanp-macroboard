@@ -11,6 +11,7 @@ const DEFAULT_PORT = 3000;
 const SERVER_DIR = path.dirname(__filename);
 const PROJECT_ROOT = path.join(SERVER_DIR, '..', '..', '..');
 const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
+const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
 
 class DeckStreamServer {
   private config = loadConfig();
@@ -27,7 +28,7 @@ class DeckStreamServer {
 
     this.printConfig();
 
-    this.httpServer = await createHTTPServer(DEFAULT_PORT, CLIENT_DIST_PATH);
+    this.httpServer = await createHTTPServer(DEFAULT_PORT, CLIENT_DIST_PATH, ADMIN_DIST_PATH);
 
     this.wsManager.start(DEFAULT_PORT + 1, this.handleWSMessage.bind(this));
 
