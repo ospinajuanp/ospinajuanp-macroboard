@@ -46,7 +46,7 @@ El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin
 
 | Software | Versión | Descarga |
 |----------|---------|----------|
-| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| Node.js | 24+ | [nodejs.org](https://nodejs.org/) |
 | pnpm | latest | [pnpm.io](https://pnpm.io/installation) |
 | Visual Studio Build Tools | 2022 | [visualstudio.microsoft.com](https://visualstudio.microsoft.com/visual-cpp-build-tools/) |
 | OBS Studio | 28+ | [obsproject.com](https://obsproject.com/) |
@@ -56,6 +56,8 @@ El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin
 1. Descargar desde: [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 2. Instalar con las siguientes cargas de trabajo:
    - **Desarrollo de escritorio con C++**
+   - **SDK de Windows (Windows SDK)**
+   - **Compiladores MSVC (Microsoft Visual C++)**
 3. Reiniciar el sistema después de la instalación
 
 ### OBS Studio - WebSocket Integrado (OBS 28+)
