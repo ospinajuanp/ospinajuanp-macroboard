@@ -14,7 +14,7 @@
     "clean": "pnpm -r exec rimraf .next dist out && rimraf config.json",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "package": "pnpm --filter @ospinajuanp-macroboard/server package"
+    "package": "pnpm build && pnpm --filter @ospinajuanp-macroboard/server package"
   },
   "devDependencies": {
     "@tsconfig/node18": "^1.0.0",

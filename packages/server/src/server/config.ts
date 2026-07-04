@@ -1,8 +1,6 @@
 import { ServerConfig } from '@ospinajuanp-macroboard/shared';
 import * as fs from 'fs';
-import * as path from 'path';
-
-export const CONFIG_PATH = path.join(process.cwd(), 'config.json');
+import { getConfigPath } from './paths';
 
 export const DEFAULT_CONFIG: ServerConfig = {
   buttons: [],
@@ -14,9 +12,10 @@ export const DEFAULT_CONFIG: ServerConfig = {
 };
 
 export function loadConfig(): ServerConfig {
+  const configPath = getConfigPath();
   try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
+    if (fs.existsSync(configPath)) {
+      const data = fs.readFileSync(configPath, 'utf-8');
       return JSON.parse(data);
     }
   } catch (error) {
@@ -26,8 +25,9 @@ export function loadConfig(): ServerConfig {
 }
 
 export function saveConfig(config: ServerConfig): void {
+  const configPath = getConfigPath();
   try {
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   } catch (error) {
     console.error('Error saving config:', error);
   }

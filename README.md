@@ -64,3 +64,25 @@ pnpm clean        # Clean build and config.json
 pnpm lint         # Lint
 pnpm typecheck    # TypeScript
 ```
+
+## Building the .exe
+
+To create a standalone Windows executable:
+
+```bash
+pnpm package
+```
+
+This will:
+1. Build client and admin packages
+2. Copy static files to server/dist/static
+3. Create `packages/server/dist/ospinajuanp-macroboard.exe`
+
+**Output location:** `packages/server/dist/ospinajuanp-macroboard.exe`
+
+**To run on a new PC:**
+1. Copy the `ospinajuanp-macroboard.exe` to the target machine
+2. (Optional) Copy `config.json` if you want to pre-configure it
+3. Run the .exe - it will create `config.json` on first run with default settings
+
+**Note:** The .exe is self-contained and does not require Node.js to be installed.

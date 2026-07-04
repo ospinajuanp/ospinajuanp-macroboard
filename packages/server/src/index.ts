@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { loadConfig, saveConfig } from './server/config';
+import { isPackaged, getBasePath, getStaticPath } from './server/paths';
 import { createHTTPServer, stopHTTPServer } from './server/http';
 import { WebSocketManager, Client } from './server/websocket';
 import { OBSClient, OBSState } from './server/obs';
@@ -8,10 +9,24 @@ import { generateQRCode, getConnectionUrl } from './server/qr';
 import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
 
 const DEFAULT_PORT = 3000;
-const SERVER_DIR = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(SERVER_DIR, '..', '..', '..');
-const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
-const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
+
+function getStaticPaths() {
+  if (isPackaged()) {
+    const basePath = getBasePath();
+    return {
+      clientDistPath: path.join(basePath, 'static', 'client'),
+      adminDistPath: path.join(basePath, 'static', 'admin'),
+    };
+  }
+  const serverDir = path.dirname(__filename);
+  const projectRoot = path.resolve(serverDir, '..', '..', '..');
+  return {
+    clientDistPath: path.join(projectRoot, 'packages', 'client', 'dist'),
+    adminDistPath: path.join(projectRoot, 'packages', 'admin', 'out'),
+  };
+}
+
+const { clientDistPath: CLIENT_DIST_PATH, adminDistPath: ADMIN_DIST_PATH } = getStaticPaths();
 
 const DEFAULT_BUTTONS: Button[] = [
   { id: 'default_record', icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
