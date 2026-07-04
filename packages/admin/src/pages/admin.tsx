@@ -279,11 +279,11 @@ export default function AdminPage() {
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
                     {editForm.action === 'OBS_SCENE' ? 'Nombre de Escena' :
-                     editForm.action === 'HOTKEY' ? 'Presiona las teclas...' :
+                     editForm.action === 'HOTKEY' ? 'Selecciona la tecla o combinacion' :
                      'Macro'}
                   </label>
                   {editForm.action === 'HOTKEY' ? (
-                    <KeyboardRecorder
+                    <KeyboardPicker
                       value={editForm.payload || ''}
                       onChange={(keys) => setEditForm({ ...editForm, payload: keys })}
                     />
@@ -380,39 +380,201 @@ interface KeyboardRecorderProps {
   onChange: (keys: string) => void;
 }
 
-function KeyboardRecorder({ value, onChange }: KeyboardRecorderProps) {
-  const [recording, setRecording] = React.useState(false);
+interface KeyboardPickerProps {
+  value: string;
+  onChange: (keys: string) => void;
+}
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!recording) return;
-    e.preventDefault();
+function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
+  const [selectedKeys, setSelectedKeys] = React.useState<string[]>(value ? value.split('+') : []);
 
-    const keys: string[] = [];
-    if (e.ctrlKey) keys.push('ctrl');
-    if (e.shiftKey) keys.push('shift');
-    if (e.altKey) keys.push('alt');
+  const modifiers = [
+    { key: 'ctrl', label: 'Ctrl' },
+    { key: 'shift', label: 'Shift' },
+    { key: 'alt', label: 'Alt' },
+  ];
 
-    const key = e.key.toUpperCase();
-    if (!['CONTROL', 'SHIFT', 'ALT', 'META'].includes(key)) {
-      keys.push(key);
-    }
+  const functionKeys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'];
 
-    if (keys.length > 0) {
-      onChange(keys.join('+'));
-    }
+  const letters = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+
+  const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+  const specialKeys = [
+    { key: 'escape', label: 'Esc' },
+    { key: 'tab', label: 'Tab' },
+    { key: 'space', label: 'Espacio' },
+    { key: 'enter', label: 'Enter' },
+    { key: 'backspace', label: 'Borrar' },
+    { key: 'delete', label: 'Del' },
+    { key: 'home', label: 'Home' },
+    { key: 'end', label: 'End' },
+    { key: 'pageup', label: 'PgUp' },
+    { key: 'pagedown', label: 'PgDn' },
+    { key: 'insert', label: 'Ins' },
+  ];
+
+  const directionKeys = [
+    { key: 'up', label: '↑' },
+    { key: 'down', label: '↓' },
+    { key: 'left', label: '←' },
+    { key: 'right', label: '→' },
+  ];
+
+  const toggleKey = (key: string) => {
+    const newKeys = selectedKeys.includes(key)
+      ? selectedKeys.filter(k => k !== key)
+      : [...selectedKeys, key];
+    setSelectedKeys(newKeys);
+    onChange(newKeys.join('+'));
+  };
+
+  const isSelected = (key: string) => selectedKeys.includes(key);
+
+  const clearAll = () => {
+    setSelectedKeys([]);
+    onChange('');
   };
 
   return (
-    <div
-      tabIndex={0}
-      onFocus={() => setRecording(true)}
-      onBlur={() => setRecording(false)}
-      onKeyDown={handleKeyDown}
-      className={`w-full bg-gray-700 rounded-lg px-4 py-3 text-white text-center cursor-text font-mono ${
-        recording ? 'ring-2 ring-deckstream-primary' : ''
-      }`}
-    >
-      {value || (recording ? 'Presiona las teclas...' : 'Click para grabar')}
+    <div className="bg-gray-700 rounded-xl p-4 space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-gray-400">Seleccionado:</span>
+        <div className="flex gap-1 flex-wrap">
+          {selectedKeys.length === 0 ? (
+            <span className="text-gray-500 text-sm">Ninguna</span>
+          ) : (
+            selectedKeys.map(key => (
+              <span key={key} className="px-2 py-1 bg-deckstream-primary rounded text-xs font-mono">
+                {key.toUpperCase()}
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Modificadores</div>
+        <div className="flex gap-1 flex-wrap">
+          {modifiers.map(mod => (
+            <button
+              key={mod.key}
+              onClick={() => toggleKey(mod.key)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isSelected(mod.key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {mod.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Teclas de Funcion</div>
+        <div className="flex gap-1 flex-wrap">
+          {functionKeys.map(key => (
+            <button
+              key={key}
+              onClick={() => toggleKey(key)}
+              className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                isSelected(key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Letras</div>
+        <div className="flex gap-1 flex-wrap">
+          {letters.map(key => (
+            <button
+              key={key}
+              onClick={() => toggleKey(key)}
+              className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                isSelected(key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Numeros</div>
+        <div className="flex gap-1 flex-wrap">
+          {numbers.map(key => (
+            <button
+              key={key}
+              onClick={() => toggleKey(key)}
+              className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                isSelected(key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Especiales</div>
+        <div className="flex gap-1 flex-wrap">
+          {specialKeys.map(key => (
+            <button
+              key={key.key}
+              onClick={() => toggleKey(key.key)}
+              className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                isSelected(key.key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {key.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3">
+        <div className="text-xs text-gray-400 mb-2">Direccion</div>
+        <div className="flex gap-1 flex-wrap">
+          {directionKeys.map(key => (
+            <button
+              key={key.key}
+              onClick={() => toggleKey(key.key)}
+              className={`w-10 h-10 rounded text-lg font-medium transition-colors flex items-center justify-center ${
+                isSelected(key.key)
+                  ? 'bg-deckstream-primary text-white'
+                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+              }`}
+            >
+              {key.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-3 flex gap-2">
+        <button
+          onClick={clearAll}
+          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors text-sm"
+        >
+          Borrar Todo
+        </button>
+      </div>
     </div>
   );
 }
