@@ -28,8 +28,6 @@ Compression=lzma2
 SolidCompression=yes
 ; Modern look
 WizardStyle=modern
-; UAC manifest
-ManifestUACExecutionLevel=requireAdministrator
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

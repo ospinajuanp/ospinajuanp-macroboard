@@ -7,15 +7,11 @@ $exePath = Join-Path $basePath "ospinajuanp-macroboard.exe"
 $pidFile = Join-Path $basePath ".server.pid"
 $quitFile = Join-Path $basePath ".quit"
 
-function Show-BalloonTip {
-    param([string]$Title, [string]$Message, [System.Windows.Forms.ToolTipIcon]$Icon = "Info")
-
-    $notifyIcon.ShowBalloonTip(5000, $Title, $Message, $Icon)
-}
-
 $notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-$notifyIcon.Icon = [System.Drawing.SystemIcons]::Application
+$icon = [System.Drawing.SystemIcons]::Application
+$notifyIcon.Icon = $icon
 $notifyIcon.Text = "ospinajuanp-macroboard"
+$notifyIcon.Visible = $true
 
 $contextMenu = New-Object System.Windows.Forms.ContextMenuStrip
 
@@ -24,8 +20,6 @@ $menuOpen = $contextMenu.Items.Add("Open Admin UI", $null, {
 })
 
 $menuQuit = $contextMenu.Items.Add("Quit", $null, {
-    $null = Set-Content -Path $quitFile -Value "quit"
-    Start-Sleep -Milliseconds 100
     if (Test-Path $pidFile) {
         $serverPid = Get-Content $pidFile -Raw
         try {
@@ -34,16 +28,10 @@ $menuQuit = $contextMenu.Items.Add("Quit", $null, {
     }
     $notifyIcon.Visible = $false
     $notifyIcon.Dispose()
-    exit
+    Stop-Process -Id $PID -Force -ErrorAction SilentlyContinue
 })
 
 $notifyIcon.ContextMenuStrip = $contextMenu
-$notifyIcon.Visible = $true
-
-$pid = Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
-$null = Set-Content -Path $pidFile -Value $pid.Id
-
-Show-BalloonTip -Title "ospinajuanp-macroboard" -Message "Server started. Click to configure." -Icon Info
 
 $notifyIcon.Add_Click({
     param($sender, $e)
@@ -52,16 +40,10 @@ $notifyIcon.Add_Click({
     }
 })
 
-$checkQuitInterval = 500
-$checkQuitTimer = New-Object System.Windows.Forms.Timer
-$checkQuitTimer.Interval = $checkQuitInterval
-$checkQuitTimer.Add_Tick({
-    if (Test-Path $quitFile) {
-        $notifyIcon.Visible = $false
-        $notifyIcon.Dispose()
-        exit
-    }
-})
-$checkQuitTimer.Start()
+$pid = Start-Process -FilePath $exePath -PassThru -WindowStyle Minimized
+$null = Set-Content -Path $pidFile -Value $pid.Id
 
-[System.Windows.Forms.Application]::Run($notifyIcon)
+Start-Sleep -Milliseconds 500
+
+$app = New-Object System.Windows.Forms.ApplicationContext
+[void][System.Windows.Forms.Application]::Run($app)

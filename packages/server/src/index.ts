@@ -90,11 +90,11 @@ class DeckStreamServer {
     try {
       this.trayProcess = spawn('powershell.exe', [
         '-ExecutionPolicy', 'Bypass',
-        '-WindowStyle', 'Hidden',
         '-File', scriptPath
       ], {
-        detached: false,
+        detached: true,
         stdio: 'ignore',
+        windowsHide: true,
       });
 
       this.trayProcess.on('error', (err) => {
