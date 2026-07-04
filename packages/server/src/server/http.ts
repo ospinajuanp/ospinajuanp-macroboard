@@ -41,8 +41,6 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
 
   app.get('/m', async (request, reply) => {
     const clientIndexPath = path.join(clientDistPath, 'index.html');
-    console.log('[HTTP] /m request, clientDistPath:', clientDistPath);
-    console.log('[HTTP] clientIndexPath:', clientIndexPath, 'exists:', fs.existsSync(clientIndexPath));
     if (fs.existsSync(clientIndexPath)) {
       const content = fs.readFileSync(clientIndexPath, 'utf-8');
       return reply.type('text/html').send(content);
@@ -79,7 +77,6 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
   app.get('/assets/*', async (request, reply) => {
     const urlPath = request.url.replace('/assets/', '');
     const fullPath = path.join(clientDistPath, 'assets', urlPath);
-    console.log('DEBUG assets request:', request.url, '-> urlPath:', urlPath, '-> fullPath:', fullPath, 'exists:', fs.existsSync(fullPath));
     if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
       const ext = path.extname(fullPath);
       const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
@@ -93,7 +90,6 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
     const urlPath = request.url.replace('/_next', '').replace(/^\//, '');
     const clientNextPath = path.join(clientDistPath, '_next', urlPath);
     const adminNextPath = path.join(adminDistPath, '_next', urlPath);
-    console.log('DEBUG _next request:', request.url, '-> urlPath:', urlPath);
     if (fs.existsSync(clientNextPath) && !fs.statSync(clientNextPath).isDirectory()) {
       const ext = path.extname(clientNextPath);
       const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';

@@ -92,13 +92,7 @@ function App() {
         break;
       case 'CONFIG_UPDATE':
         if (message.grid) setGrid(message.grid);
-        if (message.buttons) {
-          console.log('[CONFIG_UPDATE] received, count:', message.buttons.length);
-          message.buttons.forEach((b, i) => {
-            console.log(`  [${i}] ${b.id} color=${b.color}`);
-          });
-          setButtons(message.buttons);
-        }
+        if (message.buttons) setButtons(message.buttons);
         break;
       case 'ACTION_ACK':
         if (message.buttonId) {
