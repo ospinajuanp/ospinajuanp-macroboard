@@ -36,6 +36,15 @@ if (fs.existsSync(adminDistSrc)) {
   console.log('Admin built and copied.');
 }
 
+console.log('Copying scripts...');
+const scriptsSrc = path.join(__dirname);
+const scriptsDest = path.join(serverDist, 'scripts');
+if (fs.existsSync(scriptsDest)) {
+  fs.rmSync(scriptsDest, { recursive: true });
+}
+copyDir(scriptsSrc, scriptsDest);
+console.log('Scripts copied.');
+
 console.log('Package preparation complete!');
 
 function copyDir(src, dest) {

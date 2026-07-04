@@ -1,5 +1,6 @@
 import * as path from 'path';
-import { exec } from 'child_process';
+import * as fs from 'fs';
+import { exec, spawn } from 'child_process';
 import { loadConfig, saveConfig } from './server/config';
 import { isPackaged, getBasePath, getStaticPath } from './server/paths';
 import { createHTTPServer, stopHTTPServer } from './server/http';
@@ -19,6 +20,7 @@ function getStaticPaths() {
     return {
       clientDistPath: path.join(basePath, 'static', 'client'),
       adminDistPath: path.join(basePath, 'static', 'admin'),
+      basePath,
     };
   }
   const serverDir = path.dirname(__filename);
@@ -26,10 +28,11 @@ function getStaticPaths() {
   return {
     clientDistPath: path.join(projectRoot, 'packages', 'client', 'dist'),
     adminDistPath: path.join(projectRoot, 'packages', 'admin', 'out'),
+    basePath: process.cwd(),
   };
 }
 
-const { clientDistPath: CLIENT_DIST_PATH, adminDistPath: ADMIN_DIST_PATH } = getStaticPaths();
+const { clientDistPath: CLIENT_DIST_PATH, adminDistPath: ADMIN_DIST_PATH, basePath: BASE_PATH } = getStaticPaths();
 
 const DEFAULT_BUTTONS: Button[] = [
   { id: 'default_record', icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
@@ -42,6 +45,9 @@ class DeckStreamServer {
   private obsClient: OBSClient | null = null;
   private hotkeyManager = new HotkeyManager();
   private httpServer: Awaited<ReturnType<typeof createHTTPServer>> | null = null;
+  private trayProcess: ReturnType<typeof spawn> | null = null;
+  private quitCheckInterval: NodeJS.Timeout | null = null;
+  private isShuttingDown = false;
 
   async start(): Promise<void> {
     console.log('\n========================================');
@@ -60,7 +66,78 @@ class DeckStreamServer {
 
     this.printConnectionInfo();
 
+    this.setupSystemTray();
+
     this.setupGracefulShutdown();
+  }
+
+  private setupSystemTray(): void {
+    if (!isPackaged()) {
+      console.log('[System Tray] Skipping (dev mode)');
+      return;
+    }
+
+    const scriptPath = path.join(BASE_PATH, 'scripts', 'tray.ps1');
+    const scriptExists = fs.existsSync(scriptPath);
+
+    if (!scriptExists) {
+      console.log('[System Tray] tray.ps1 not found, skipping');
+      return;
+    }
+
+    console.log('[System Tray] Starting...');
+
+    try {
+      this.trayProcess = spawn('powershell.exe', [
+        '-ExecutionPolicy', 'Bypass',
+        '-WindowStyle', 'Hidden',
+        '-File', scriptPath
+      ], {
+        detached: false,
+        stdio: 'ignore',
+      });
+
+      this.trayProcess.on('error', (err) => {
+        console.warn('[System Tray] Failed to start:', err.message);
+      });
+
+      this.quitCheckInterval = setInterval(() => {
+        const quitFile = path.join(BASE_PATH, '.quit');
+        if (fs.existsSync(quitFile)) {
+          fs.unlinkSync(quitFile);
+          this.shutdown();
+        }
+      }, 500);
+
+      console.log('[System Tray] Started successfully');
+    } catch (error) {
+      console.warn('[System Tray] Error:', error);
+    }
+  }
+
+  private async shutdown(): Promise<void> {
+    if (this.isShuttingDown) return;
+    this.isShuttingDown = true;
+
+    console.log('\nApagando servidor...');
+
+    if (this.quitCheckInterval) {
+      clearInterval(this.quitCheckInterval);
+    }
+
+    this.wsManager.stop();
+    if (this.httpServer) {
+      await stopHTTPServer(this.httpServer);
+    }
+    if (this.obsClient) {
+      await this.obsClient.disconnect();
+    }
+    if (this.trayProcess) {
+      try {
+        this.trayProcess.kill();
+      } catch {}
+    }
+    process.exit(0);
   }
 
   private printConfig(): void {
@@ -242,20 +319,8 @@ class DeckStreamServer {
   }
 
   private setupGracefulShutdown(): void {
-    const shutdown = async () => {
-      console.log('\nApagando servidor...');
-      this.wsManager.stop();
-      if (this.httpServer) {
-        await stopHTTPServer(this.httpServer);
-      }
-      if (this.obsClient) {
-        await this.obsClient.disconnect();
-      }
-      process.exit(0);
-    };
-
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', () => this.shutdown());
+    process.on('SIGTERM', () => this.shutdown());
   }
 }
 
