@@ -233,7 +233,21 @@ function App() {
                 .sort((a, b) => a.column - b.column)
                 .map(button => {
                   const state = buttonStates[button.id];
-                  const icon = button.icon || 'play';
+
+                  let isActive = false;
+                  let activeIcon = button.icon || 'play';
+                  let activeColor = button.color || 'bg-deckstream-primary';
+
+                  if (button.action === 'OBS_RECORD') {
+                    isActive = obsState.recording;
+                    activeIcon = isActive ? 'stop' : 'play';
+                    activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+                  } else if (button.action === 'OBS_STREAM') {
+                    isActive = obsState.streaming;
+                    activeIcon = isActive ? 'stop' : 'play';
+                    activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+                  }
+
                   return (
                     <button
                       key={button.id}
@@ -242,13 +256,13 @@ function App() {
                       className={`
                         aspect-square rounded-2xl flex flex-col items-center justify-center
                         transition-all duration-150 font-medium
-                        ${button.color || 'bg-deckstream-primary'}
+                        ${activeColor}
                         ${!connected ? 'opacity-50' : 'active:scale-95'}
                         ${state?.pressed ? 'scale-95 opacity-80' : ''}
                         touch-manipulation
                       `}
                     >
-                      <span className="text-3xl">{iconMap[icon] || iconMap.play}</span>
+                      <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
                       {button.label && (
                         <span className="text-xs mt-1 opacity-80">{button.label}</span>
                       )}
