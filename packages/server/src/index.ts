@@ -195,7 +195,7 @@ class DeckStreamServer {
       this.config.buttons = message.buttons;
     }
     saveConfig(this.config);
-    this.wsManager.broadcast({ type: 'CONFIG_UPDATE', buttons: this.config.buttons });
+    this.wsManager.broadcast({ type: 'CONFIG_UPDATE', buttons: [...DEFAULT_BUTTONS, ...this.config.buttons] });
   }
 
   private setupGracefulShutdown(): void {

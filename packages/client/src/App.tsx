@@ -86,7 +86,10 @@ function App() {
         break;
       case 'CONFIG_UPDATE':
         if (message.grid) setGrid(message.grid);
-        if (message.buttons) setButtons(message.buttons);
+        if (message.buttons) {
+          console.log('[CONFIG_UPDATE] buttons:', JSON.stringify(message.buttons, null, 2));
+          setButtons(message.buttons);
+        }
         break;
       case 'ACTION_ACK':
         if (message.buttonId) {
@@ -193,6 +196,8 @@ function App() {
             let isActive = false;
             let activeIcon = button.icon || 'play';
             let activeColor = button.color || 'bg-deckstream-primary';
+
+            console.log('[RENDER] button:', button.id, 'color:', button.color, 'activeColor:', activeColor);
 
             if (button.action === 'OBS_RECORD') {
               isActive = obsState.recording;
