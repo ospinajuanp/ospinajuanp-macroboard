@@ -8,8 +8,7 @@ import { generateQRCode, getConnectionUrl } from './server/qr';
 import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
 
 const DEFAULT_PORT = 3000;
-const SERVER_DIR = path.dirname(__filename);
-const PROJECT_ROOT = path.join(SERVER_DIR, '..', '..', '..');
+const PROJECT_ROOT = process.cwd();
 const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
 const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
 
