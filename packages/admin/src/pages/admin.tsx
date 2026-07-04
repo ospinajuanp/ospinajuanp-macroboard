@@ -44,10 +44,14 @@ export default function AdminPage() {
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Button>>({});
   const [isNewButton, setIsNewButton] = useState(false);
+  const [obsConnected, setObsConnected] = useState(true);
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
       setButtons(lastMessage.buttons);
+    }
+    if (lastMessage?.type === 'OBS_STATE' && lastMessage.obsConnected !== undefined) {
+      setObsConnected(lastMessage.obsConnected ?? true);
     }
   }, [lastMessage]);
 
@@ -157,10 +161,20 @@ export default function AdminPage() {
               {status === 'connected' ? 'Conectado' :
                status === 'connecting' ? 'Conectando...' : 'Desconectado'}
             </span>
+            <span className={`px-3 py-1 rounded-full text-sm ${
+              obsConnected ? 'bg-green-600/50' : 'bg-red-600/50'
+            }`}>
+              OBS: {obsConnected ? 'Conectado' : 'Desconectado'}
+            </span>
           </div>
         </header>
 
-        <div className="mb-6 bg-gray-800 rounded-xl p-6 opacity-50 pointer-events-none select-none">
+        <div className={`mb-6 bg-gray-800 rounded-xl p-6 ${!obsConnected ? 'opacity-50 pointer-events-none select-none' : ''}`}>
+          {!obsConnected && (
+            <div className="text-center text-gray-400 py-4 mb-4">
+              OBS no esta conectado. Reconectando...
+            </div>
+          )}
           <h2 className="text-xl font-semibold mb-4">Botones</h2>
           <div className="flex flex-wrap gap-3">
             {buttons.map((button) => {

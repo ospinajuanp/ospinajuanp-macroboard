@@ -39,12 +39,14 @@ export class OBSClient {
       console.log('[OBS] WebSocket connected');
       this.updateState({ connected: true });
       this.reconnectAttempts = 0;
+      this.broadcastOBSConnection(true);
     });
 
     (this.obs as any).on('ConnectionClosed', () => {
       console.log('[OBS] WebSocket disconnected');
       this.updateState({ connected: false });
       this.stopPolling();
+      this.broadcastOBSConnection(false);
       this.scheduleReconnect();
     });
 
@@ -117,6 +119,10 @@ export class OBSClient {
   private updateState(partial: Partial<OBSState>): void {
     this.state = { ...this.state, ...partial };
     this.callbacks.forEach((cb) => cb(this.state));
+  }
+
+  private broadcastOBSConnection(connected: boolean): void {
+    this.callbacks.forEach((cb) => cb({ ...this.state, connected }));
   }
 
   private startPolling(): void {

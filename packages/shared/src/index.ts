@@ -41,6 +41,7 @@ export interface WSServerMessage {
   type: 'ACTION_ACK' | 'OBS_STATE' | 'CONFIG_UPDATE';
   buttonId?: string;
   success?: boolean;
+  obsConnected?: boolean;
   micMuted?: boolean;
   recording?: boolean;
   streaming?: boolean;
