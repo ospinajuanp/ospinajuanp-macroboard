@@ -1,4 +1,10 @@
-import robot from 'robotjs';
+let robot: typeof import('robotjs') | null = null;
+
+try {
+  robot = require('robotjs');
+} catch (error) {
+  console.warn('robotjs not available, hotkeys disabled');
+}
 
 export interface HotkeyConfig {
   keys: string[];
@@ -39,7 +45,16 @@ export class HotkeyManager {
     f12: 'f12',
   };
 
+  isAvailable(): boolean {
+    return robot !== null;
+  }
+
   async pressHotkey(keys: string[]): Promise<void> {
+    if (!robot) {
+      console.warn('robotjs not available, cannot press hotkey');
+      return;
+    }
+
     try {
       const normalizedKeys = keys.map((k) => this.keyMap[k.toLowerCase()] || k.toLowerCase());
 
@@ -62,6 +77,11 @@ export class HotkeyManager {
   }
 
   async typeString(text: string): Promise<void> {
+    if (!robot) {
+      console.warn('robotjs not available, cannot type string');
+      return;
+    }
+
     try {
       robot.typeString(text);
     } catch (error) {
