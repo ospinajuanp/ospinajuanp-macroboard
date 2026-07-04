@@ -223,24 +223,27 @@ export default function AdminPage() {
         </div>
 
         {selectedButtonId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-4" onClick={handleCancel}>
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md my-auto" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-xl font-semibold mb-4">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto py-4 px-2" onClick={handleCancel}>
+            <div className="bg-gray-800 rounded-xl p-4 w-full max-w-md my-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
+                <button onClick={handleCancel} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+              </div>
 
-              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Icono</label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
                     {ICON_OPTIONS.map((icon) => (
                       <button
                         key={icon.value}
                         onClick={() => setEditForm({ ...editForm, icon: icon.value })}
                         className={`
-                          aspect-square rounded-lg flex items-center justify-center text-2xl
+                          flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xl
                           ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white` : 'bg-gray-700'}
                         `}
                       >
-                        {icon.label}
+                        <span>{icon.label}</span>
                       </button>
                     ))}
                   </div>
@@ -254,7 +257,7 @@ export default function AdminPage() {
                         key={color.value}
                         onClick={() => setEditForm({ ...editForm, color: color.value })}
                         className={`
-                          aspect-square rounded-lg ${color.value}
+                          h-10 rounded-lg ${color.value}
                           ${editForm.color === color.value ? 'ring-2 ring-white' : ''}
                         `}
                         title={color.label}
@@ -313,7 +316,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-2 mt-6">
                 <button
                   onClick={handleSaveButton}
                   className="flex-1 bg-deckstream-primary hover:bg-deckstream-secondary text-white font-medium py-2 rounded-lg transition-colors"
@@ -322,13 +325,13 @@ export default function AdminPage() {
                 </button>
                 <button
                   onClick={handleDeleteButton}
-                  className="px-6 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
+                  className="px-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
                 >
                   Eliminar
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="px-6 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
+                  className="px-4 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>
