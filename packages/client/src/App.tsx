@@ -210,19 +210,18 @@ function App() {
               activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
             }
 
+            const className = `w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all duration-150 font-medium ${activeColor} ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'} ${state?.pressed ? 'scale-95 opacity-80' : ''} touch-manipulation`;
+
+            if (button.id.startsWith('btn_')) {
+              console.log('[BUTTON RENDER]', button.id, 'color:', button.color, 'className includes:', activeColor);
+            }
+
             return (
               <button
                 key={button.id}
                 onClick={() => sendAction(button)}
                 disabled={!connected || state?.pending}
-                className={`
-                  w-20 h-20 rounded-2xl flex flex-col items-center justify-center
-                  transition-all duration-150 font-medium
-                  ${activeColor}
-                  ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'}
-                  ${state?.pressed ? 'scale-95 opacity-80' : ''}
-                  touch-manipulation
-                `}
+                className={className}
               >
                 <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
                 {button.label && (
