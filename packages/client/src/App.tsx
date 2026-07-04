@@ -283,10 +283,6 @@ function App() {
           );
         })()}
       </main>
-
-      <footer className="p-4 text-center text-xs text-gray-500">
-        {t('connected')}
-      </footer>
     </div>
   );
 }
