@@ -147,7 +147,11 @@ export class OBSClient {
 
   async toggleRecord(): Promise<void> {
     try {
-      await this.obs.call('ToggleRecord');
+      if (this.state.recording) {
+        await this.obs.call('StopRecord');
+      } else {
+        await this.obs.call('StartRecord');
+      }
     } catch (error) {
       console.error('Failed to toggle record:', error);
       throw error;
@@ -156,7 +160,11 @@ export class OBSClient {
 
   async toggleStream(): Promise<void> {
     try {
-      await this.obs.call('ToggleStream');
+      if (this.state.streaming) {
+        await this.obs.call('StopStream');
+      } else {
+        await this.obs.call('StartStream');
+      }
     } catch (error) {
       console.error('Failed to toggle stream:', error);
       throw error;
