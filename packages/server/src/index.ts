@@ -129,12 +129,9 @@ class DeckStreamServer {
   }
 
   private sendConfigToClient(client: Client): void {
-    const buttons = client.clientType === 'mobile'
-      ? [...DEFAULT_BUTTONS, ...this.config.buttons]
-      : this.config.buttons;
     client.ws.send(JSON.stringify({
       type: 'CONFIG_UPDATE',
-      buttons,
+      buttons: [...DEFAULT_BUTTONS, ...this.config.buttons],
     }));
   }
 

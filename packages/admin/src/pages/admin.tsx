@@ -49,7 +49,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
-      setButtons(lastMessage.buttons);
+      const userButtons = lastMessage.buttons.filter((b: Button) => b.id.startsWith('btn_'));
+      setButtons(userButtons);
     }
     if (lastMessage?.type === 'OBS_STATE') {
       if (lastMessage.obsConnected !== undefined) {
