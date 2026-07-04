@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { WSClientMessage, WSServerMessage, GridConfig, Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -226,8 +226,6 @@ function App() {
     </div>
   );
 }
-
-import React from 'react';
 
 interface StatusBadgeProps {
   icon: string;
