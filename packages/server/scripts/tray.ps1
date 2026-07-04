@@ -1,49 +1,46 @@
 Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
 
-$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$basePath = Split-Path -Parent $scriptPath
+$basePath = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $exePath = Join-Path $basePath "ospinajuanp-macroboard.exe"
 $pidFile = Join-Path $basePath ".server.pid"
 $quitFile = Join-Path $basePath ".quit"
 
 $notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-$icon = [System.Drawing.SystemIcons]::Application
-$notifyIcon.Icon = $icon
+$notifyIcon.Icon = [System.Drawing.SystemIcons]::Application
 $notifyIcon.Text = "ospinajuanp-macroboard"
 $notifyIcon.Visible = $true
 
 $contextMenu = New-Object System.Windows.Forms.ContextMenuStrip
-
-$menuOpen = $contextMenu.Items.Add("Open Admin UI", $null, {
-    Start-Process "http://localhost:3000/admin"
-})
-
-$menuQuit = $contextMenu.Items.Add("Quit", $null, {
+$contextMenu.Items.Add("Open Admin UI", $null, { Start-Process "http://localhost:3000/admin" })
+$contextMenu.Items.Add("Quit", $null, {
     if (Test-Path $pidFile) {
-        $serverPid = Get-Content $pidFile -Raw
-        try {
-            Stop-Process -Id $serverPid -Force -ErrorAction SilentlyContinue
-        } catch {}
+        $pid = Get-Content $pidFile -Raw
+        Stop-Process $pid -Force -ErrorAction SilentlyContinue
     }
     $notifyIcon.Visible = $false
     $notifyIcon.Dispose()
-    Stop-Process -Id $PID -Force -ErrorAction SilentlyContinue
+    exit
 })
-
 $notifyIcon.ContextMenuStrip = $contextMenu
 
 $notifyIcon.Add_Click({
-    param($sender, $e)
+    param($s, $e)
     if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
         Start-Process "http://localhost:3000/admin"
     }
 })
 
-$pid = Start-Process -FilePath $exePath -PassThru -WindowStyle Minimized
-$null = Set-Content -Path $pidFile -Value $pid.Id
+$proc = Start-Process $exePath -PassThru
+Set-Content $pidFile $proc.Id
 
-Start-Sleep -Milliseconds 500
+while (!$proc.HasExited -and (Test-Path $quitFile) -eq $false) {
+    Start-Sleep 1
+}
 
-$app = New-Object System.Windows.Forms.ApplicationContext
-[void][System.Windows.Forms.Application]::Run($app)
+if (Test-Path $quitFile) {
+    Remove-Item $quitFile -ErrorAction SilentlyContinue
+    if (!$proc.HasExited) { Stop-Process $proc.Id -Force }
+}
+
+$notifyIcon.Visible = $false
+$notifyIcon.Dispose()

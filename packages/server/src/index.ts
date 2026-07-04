@@ -90,12 +90,17 @@ class DeckStreamServer {
     try {
       this.trayProcess = spawn('powershell.exe', [
         '-ExecutionPolicy', 'Bypass',
+        '-NoProfile',
         '-File', scriptPath
       ], {
         detached: true,
-        stdio: 'ignore',
+        stdio: 'pipe',
         windowsHide: true,
       });
+
+      this.trayProcess.stdin!.end();
+      this.trayProcess.stdout!.end();
+      this.trayProcess.stderr!.end();
 
       this.trayProcess.on('error', (err) => {
         console.warn('[System Tray] Failed to start:', err.message);
