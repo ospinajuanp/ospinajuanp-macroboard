@@ -168,12 +168,6 @@ function App() {
 
         <div className="flex gap-2 text-xs overflow-x-auto pb-1">
           <StatusBadge
-            icon="🎤"
-            label={obsState.micMuted ? 'Muted' : 'Mic'}
-            active={obsState.micMuted}
-            variant={obsState.micMuted ? 'danger' : 'success'}
-          />
-          <StatusBadge
             icon="⏺"
             label={obsState.recording ? 'Recording' : 'Rec'}
             active={obsState.recording}
