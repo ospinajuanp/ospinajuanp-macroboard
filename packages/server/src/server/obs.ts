@@ -23,7 +23,9 @@ export class OBSClient {
     micMuted: false,
   };
   private callbacks: OBSStateCallback[] = [];
-  private pollInterval: NodeJS.Timeout | null = null;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
 
   constructor(config: ServerConfig['obs']) {
     this.config = config;
@@ -32,63 +34,65 @@ export class OBSClient {
   }
 
   private setupEventHandlers(): void {
-    this.obs.on('ConnectionOpened', () => {
-      console.log('OBS WebSocket connected');
+    (this.obs as any).on('ConnectionOpened', () => {
+      console.log('[OBS] WebSocket connected');
       this.updateState({ connected: true });
-      this.startPolling();
+      this.reconnectAttempts = 0;
     });
 
-    this.obs.on('ConnectionClosed', () => {
-      console.log('OBS WebSocket disconnected');
+    (this.obs as any).on('ConnectionClosed', () => {
+      console.log('[OBS] WebSocket disconnected');
       this.updateState({ connected: false });
-      this.stopPolling();
+      this.scheduleReconnect();
     });
 
-    this.obs.on('SwitchScenes', (data: any) => {
-      this.updateState({ currentScene: data['scene-name'] });
+    (this.obs as any).on('Identified', () => {
+      console.log('[OBS] Authentication successful');
     });
 
-    this.obs.on('StreamStarted', () => {
-      this.updateState({ streaming: true });
+    (this.obs as any).on('CurrentProgramSceneChanged', (data: any) => {
+      this.updateState({ currentScene: data.sceneName || null });
     });
 
-    this.obs.on('StreamStopped', () => {
-      this.updateState({ streaming: false });
+    (this.obs as any).on('StreamStateChanged', (data: any) => {
+      this.updateState({ streaming: data.outputActive });
     });
 
-    this.obs.on('RecordingStarted', () => {
-      this.updateState({ recording: true });
+    (this.obs as any).on('RecordingStateChanged', (data: any) => {
+      this.updateState({ recording: data.outputActive });
     });
 
-    this.obs.on('RecordingStopped', () => {
-      this.updateState({ recording: false });
-    });
-  }
-
-  private async pollMicState(): Promise<void> {
-    try {
-      const response: any = await (this.obs as any).send('GetInputMute', { inputName: 'Mic/Audio' });
-      this.updateState({ micMuted: response.inputMuted });
-    } catch {
-      try {
-        const response: any = await (this.obs as any).send('GetInputMute', { inputName: 'Audio Input Capture' });
-        this.updateState({ micMuted: response.inputMuted });
-      } catch {
-        // Mic input not found, ignore
+    (this.obs as any).on('InputMuteStateChanged', (data: any) => {
+      const micNames = ['mic', 'audio', 'microphone'];
+      const isMic = micNames.some((name) =>
+        data.inputName.toLowerCase().includes(name)
+      );
+      if (isMic) {
+        this.updateState({ micMuted: data.inputMuted });
       }
-    }
+    });
+
+    (this.obs as any).on('ConnectionError', (error: any) => {
+      console.error('[OBS] Connection error:', error);
+    });
   }
 
-  private startPolling(): void {
-    this.pollMicState();
-    this.pollInterval = setInterval(() => this.pollMicState(), 5000);
-  }
-
-  private stopPolling(): void {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
+  private scheduleReconnect(): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('[OBS] Max reconnect attempts reached, giving up');
+      return;
     }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * this.reconnectAttempts, 10000);
+
+    console.log(`[OBS] Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
+
+    this.reconnectTimeout = setTimeout(() => {
+      this.connect().catch((err) => {
+        console.error('[OBS] Reconnect failed:', err);
+      });
+    }, delay);
   }
 
   private updateState(partial: Partial<OBSState>): void {
@@ -98,24 +102,25 @@ export class OBSClient {
 
   async connect(): Promise<void> {
     try {
-      await this.obs.connect({
-        address: `${this.config.host}:${this.config.port}`,
-        password: this.config.password,
-      });
-    } catch (error) {
-      console.error('Failed to connect to OBS:', error);
+      console.log(`[OBS] Connecting to ws://${this.config.host}:${this.config.port}`);
+      await this.obs.connect(`ws://${this.config.host}:${this.config.port}`, this.config.password);
+    } catch (error: any) {
+      console.error('[OBS] Failed to connect:', error?.message || error);
       throw error;
     }
   }
 
   async disconnect(): Promise<void> {
-    this.stopPolling();
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
     await this.obs.disconnect();
   }
 
   async setScene(sceneName: string): Promise<void> {
     try {
-      await (this.obs as any).send('SetCurrentProgramScene', { 'scene-name': sceneName });
+      await this.obs.call('SetCurrentProgramScene', { sceneName });
     } catch (error) {
       console.error('Failed to set scene:', error);
       throw error;
@@ -124,8 +129,18 @@ export class OBSClient {
 
   async toggleMic(): Promise<boolean> {
     try {
-      await (this.obs as any).send('ToggleInputMute', { inputName: 'Mic/Audio' });
-      return !this.state.micMuted;
+      const { inputs }: any = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
+      const micInput = inputs?.find(
+        (i: any) =>
+          i.inputName.toLowerCase().includes('mic') ||
+          i.inputName.toLowerCase().includes('audio')
+      );
+
+      if (micInput) {
+        await this.obs.call('ToggleInputMute', { inputName: micInput.inputName });
+        return !this.state.micMuted;
+      }
+      return this.state.micMuted;
     } catch (error) {
       console.error('Failed to toggle mic:', error);
       throw error;
