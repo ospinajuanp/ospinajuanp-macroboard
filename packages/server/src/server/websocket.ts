@@ -40,6 +40,9 @@ export class WebSocketManager {
           const message = JSON.parse(data.toString()) as WSClientMessage;
           if (message.type === 'CLIENT_TYPE' && message.clientType) {
             client.clientType = message.clientType;
+            if (this.connectionHandler) {
+              this.connectionHandler(client);
+            }
             return;
           }
           if (this.messageHandler) {
