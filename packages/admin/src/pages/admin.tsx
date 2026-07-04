@@ -11,14 +11,31 @@ const ACTION_TYPES: { value: ActionType; label: string }[] = [
 ];
 
 const ICON_OPTIONS = [
-  { value: 'play', label: '▶', color: 'bg-green-600' },
-  { value: 'pause', label: '⏸', color: 'bg-yellow-600' },
-  { value: 'stop', label: '⏹', color: 'bg-red-600' },
-  { value: 'mic', label: '🎤', color: 'bg-blue-600' },
-  { value: 'cam', label: '📷', color: 'bg-purple-600' },
-  { value: 'scene', label: '🎬', color: 'bg-indigo-600' },
-  { value: 'alert', label: '🔔', color: 'bg-orange-600' },
-  { value: 'key', label: '⌨', color: 'bg-cyan-600' },
+  { value: 'play', label: '▶' },
+  { value: 'pause', label: '⏸' },
+  { value: 'stop', label: '⏹' },
+  { value: 'mic', label: '🎤' },
+  { value: 'cam', label: '📷' },
+  { value: 'scene', label: '🎬' },
+  { value: 'alert', label: '🔔' },
+  { value: 'key', label: '⌨' },
+  { value: 'star', label: '⭐' },
+  { value: 'heart', label: '❤️' },
+  { value: 'fire', label: '🔥' },
+  { value: 'bolt', label: '⚡' },
+];
+
+const COLOR_OPTIONS = [
+  { value: 'bg-red-600', label: 'Rojo' },
+  { value: 'bg-orange-600', label: 'Naranja' },
+  { value: 'bg-yellow-500', label: 'Amarillo' },
+  { value: 'bg-green-600', label: 'Verde' },
+  { value: 'bg-teal-600', label: 'Teal' },
+  { value: 'bg-blue-600', label: 'Azul' },
+  { value: 'bg-indigo-600', label: 'Indigo' },
+  { value: 'bg-purple-600', label: 'Morado' },
+  { value: 'bg-pink-600', label: 'Rosa' },
+  { value: 'bg-gray-600', label: 'Gris' },
 ];
 
 function generateButtonId(row: number, column: number): string {
@@ -187,7 +204,7 @@ export default function AdminPage() {
                     className={`
                       aspect-square rounded-xl flex flex-col items-center justify-center
                       transition-all duration-150 font-medium text-2xl
-                      ${button ? iconOption?.color || 'bg-deckstream-primary' : 'bg-gray-700'}
+                      ${button ? button.color || 'bg-deckstream-primary' : 'bg-gray-700'}
                       ${editMode ? 'ring-2 ring-deckstream-accent' : ''}
                       ${selectedButton?.row === row && selectedButton?.column === col ? 'ring-4 ring-white' : ''}
                     `}
@@ -224,11 +241,28 @@ export default function AdminPage() {
                         onClick={() => setEditForm({ ...editForm, icon: icon.value })}
                         className={`
                           aspect-square rounded-lg flex items-center justify-center text-2xl
-                          ${editForm.icon === icon.value ? `${icon.color} ring-2 ring-white` : 'bg-gray-700'}
+                          ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white` : 'bg-gray-700'}
                         `}
                       >
                         {icon.label}
                       </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Color</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {COLOR_OPTIONS.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => setEditForm({ ...editForm, color: color.value })}
+                        className={`
+                          aspect-square rounded-lg ${color.value}
+                          ${editForm.color === color.value ? 'ring-2 ring-white' : ''}
+                        `}
+                        title={color.label}
+                      />
                     ))}
                   </div>
                 </div>

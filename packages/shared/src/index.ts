@@ -11,6 +11,7 @@ export interface Button {
   action: ActionType;
   payload: string;
   label?: string;
+  color?: string;
 }
 
 export type ActionType = 'OBS_SCENE' | 'HOTKEY' | 'MACRO';

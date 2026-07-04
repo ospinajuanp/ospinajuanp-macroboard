@@ -196,7 +196,8 @@ function App() {
                 className={`
                   aspect-square rounded-2xl flex flex-col items-center justify-center
                   transition-all duration-150 font-medium
-                  ${!button ? 'bg-gray-800/50 cursor-default' : 'bg-deckstream-primary active:scale-95'}
+                  ${!button ? 'bg-gray-800/50 cursor-default' : button.color || 'bg-deckstream-primary'}
+                  ${!button || !connected ? '' : 'active:scale-95'}
                   ${state?.pressed ? 'scale-95 opacity-80' : ''}
                   ${state?.success === false ? 'bg-red-600' : ''}
                   ${state?.success === true ? 'bg-green-600' : ''}
