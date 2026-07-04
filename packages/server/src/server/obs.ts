@@ -129,15 +129,32 @@ export class OBSClient {
 
   async toggleMic(): Promise<void> {
     try {
-      const { inputs }: any = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
+      console.log('[OBS] Searching for audio inputs...');
+
+      let inputs: any[] = [];
+      try {
+        const result = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
+        inputs = result?.inputs || [];
+      } catch (e) {
+        console.log('[OBS] GetInputList with audio_input failed, trying without filter');
+      }
+
       console.log('[OBS] Audio inputs found:', inputs);
 
-      if (!inputs || inputs.length === 0) {
-        throw new Error('No audio inputs found in OBS');
+      if (inputs.length === 0) {
+        console.log('[OBS] Trying to get all inputs...');
+        const allInputs = await this.obs.call('GetInputList');
+        console.log('[OBS] All inputs:', allInputs);
+
+        const audioInputs = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
+        console.log('[OBS] Audio inputs (audio_input):', audioInputs);
+
+        const mediaInputs = await this.obs.call('GetInputList', { inputKind: 'media_input' });
+        console.log('[OBS] Media inputs:', mediaInputs);
       }
 
       const micNames = ['mic', 'microphone', 'audio', 'aux', 'sound', 'voice'];
-      const excludeNames = ['desktop', 'speakers', 'system', 'wave', 'Stereo'];
+      const excludeNames = ['desktop', 'speakers', 'system', 'wave', 'Stereo', 'playback'];
 
       let targetInput = inputs.find((i: any) => {
         const name = i.inputName.toLowerCase();
@@ -146,19 +163,22 @@ export class OBSClient {
         return isMic && !isExcluded;
       });
 
-      if (!targetInput) {
+      if (!targetInput && inputs.length > 0) {
         targetInput = inputs.find((i: any) => {
           const name = i.inputName.toLowerCase();
           return !excludeNames.some(e => name.includes(e));
         });
       }
 
-      if (!targetInput) {
+      if (!targetInput && inputs.length > 0) {
         targetInput = inputs[0];
       }
 
-      console.log('[OBS] Toggling mic:', targetInput.inputName);
+      if (!targetInput) {
+        throw new Error('No suitable audio input found in OBS. Please add an audio input to your scene.');
+      }
 
+      console.log('[OBS] Toggling mic:', targetInput.inputName);
       await this.obs.call('ToggleInputMute', { inputName: targetInput.inputName });
     } catch (error) {
       console.error('Failed to toggle mic:', error);
