@@ -76,11 +76,11 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
     return reply.status(404).send('Not found');
   });
 
-  app.get('/_next/:path*', async (request, reply) => {
-    const params = request.params as { path?: string };
-    const filePath = params.path || '';
-    const clientNextPath = path.join(clientDistPath, '_next', filePath);
-    const adminNextPath = path.join(adminDistPath, '_next', filePath);
+  app.get('/_next*', async (request, reply) => {
+    const urlPath = request.url.replace('/_next', '').replace(/^\//, '');
+    const clientNextPath = path.join(clientDistPath, '_next', urlPath);
+    const adminNextPath = path.join(adminDistPath, '_next', urlPath);
+    console.log('DEBUG _next request:', request.url, '-> urlPath:', urlPath);
     if (fs.existsSync(clientNextPath) && !fs.statSync(clientNextPath).isDirectory()) {
       const ext = path.extname(clientNextPath);
       const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
@@ -91,7 +91,7 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
       const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
       return reply.type(contentType).send(fs.readFileSync(adminNextPath));
     }
-    return reply.status(404).send('Not found');
+    return reply.status(404).send('Not found: ' + request.url);
   });
 
   app.get('/api/status', async (request, reply) => {
