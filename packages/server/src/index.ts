@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { exec } from 'child_process';
 import { loadConfig, saveConfig } from './server/config';
 import { isPackaged, getBasePath, getStaticPath } from './server/paths';
 import { createHTTPServer, stopHTTPServer } from './server/http';
@@ -7,7 +8,6 @@ import { OBSClient, OBSState } from './server/obs';
 import { HotkeyManager } from './server/robot';
 import { generateQRCode, getConnectionUrl } from './server/qr';
 import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
-import open from 'open';
 
 const DEFAULT_PORT = 3000;
 
@@ -95,7 +95,11 @@ class DeckStreamServer {
 
     if (this.config.autoOpen !== false) {
       setTimeout(() => {
-        open(adminUrl).catch(() => {});
+        exec(`start "" "${adminUrl}"`, (err) => {
+          if (err) {
+            console.warn('Auto-open failed:', err.message);
+          }
+        });
       }, 1000);
     }
   }

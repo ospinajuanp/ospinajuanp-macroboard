@@ -1,87 +1,106 @@
-import { keyboard, Key } from '@nut-tree-fork/nut-js';
+import { exec } from 'child_process';
 
-const KEY_MAP: Record<string, Key> = {
-  ctrl: Key.LeftControl,
-  control: Key.LeftControl,
-  alt: Key.LeftAlt,
-  shift: Key.LeftShift,
-  meta: Key.LeftSuper,
-  cmd: Key.LeftSuper,
-  win: Key.LeftSuper,
-  enter: Key.Enter,
-  return: Key.Enter,
-  escape: Key.Escape,
-  esc: Key.Escape,
-  space: Key.Space,
-  tab: Key.Tab,
-  backspace: Key.Backspace,
-  delete: Key.Delete,
-  del: Key.Delete,
-  up: Key.Up,
-  down: Key.Down,
-  left: Key.Left,
-  right: Key.Right,
-  f1: Key.F1,
-  f2: Key.F2,
-  f3: Key.F3,
-  f4: Key.F4,
-  f5: Key.F5,
-  f6: Key.F6,
-  f7: Key.F7,
-  f8: Key.F8,
-  f9: Key.F9,
-  f10: Key.F10,
-  f11: Key.F11,
-  f12: Key.F12,
-  home: Key.Home,
-  end: Key.End,
-  pageup: Key.PageUp,
-  page_up: Key.PageUp,
-  pagedown: Key.PageDown,
-  page_down: Key.PageDown,
-  insert: Key.Insert,
+const POWERSHELL_KEY_MAP: Record<string, string> = {
+  ctrl: '^',
+  control: '^',
+  alt: '%',
+  shift: '+',
+  meta: '^',
+  cmd: '^',
+  win: '^',
+  enter: '{ENTER}',
+  return: '{ENTER}',
+  escape: '{ESC}',
+  esc: '{ESC}',
+  space: ' ',
+  tab: '{TAB}',
+  backspace: '{BACKSPACE}',
+  delete: '{DELETE}',
+  del: '{DELETE}',
+  up: '{UP}',
+  down: '{DOWN}',
+  left: '{LEFT}',
+  right: '{RIGHT}',
+  f1: '{F1}',
+  f2: '{F2}',
+  f3: '{F3}',
+  f4: '{F4}',
+  f5: '{F5}',
+  f6: '{F6}',
+  f7: '{F7}',
+  f8: '{F8}',
+  f9: '{F9}',
+  f10: '{F10}',
+  f11: '{F11}',
+  f12: '{F12}',
+  home: '{HOME}',
+  end: '{END}',
+  pageup: '{PGUP}',
+  page_up: '{PGUP}',
+  pagedown: '{PGDN}',
+  page_down: '{PGDN}',
+  insert: '{INSERT}',
+  pause: '{BREAK}',
+  printscreen: '{PRTSC}',
 };
 
-function getKeyFromMap(key: string): Key {
+function convertToPowerShellKey(key: string): string {
   const lowerKey = key.toLowerCase();
-  if (KEY_MAP[lowerKey]) {
-    return KEY_MAP[lowerKey];
+  if (POWERSHELL_KEY_MAP[lowerKey]) {
+    return POWERSHELL_KEY_MAP[lowerKey];
   }
   if (lowerKey.length === 1) {
-    const upperKey = lowerKey.toUpperCase();
-    if (upperKey in Key) {
-      return Key[upperKey as keyof typeof Key];
+    if (/[a-z]/.test(lowerKey)) {
+      return lowerKey.toUpperCase();
+    }
+    if (/[0-9]/.test(lowerKey)) {
+      return lowerKey;
     }
   }
-  return Key.Space;
+  return `{${key.toUpperCase()}}`;
 }
 
 export class HotkeyManager {
   async pressHotkey(keys: string[]): Promise<void> {
-    try {
-      const normalizedKeys = keys.map(getKeyFromMap);
+    return new Promise((resolve, reject) => {
+      try {
+        const psKeys = keys.map(convertToPowerShellKey).join('');
 
-      for (const key of normalizedKeys.slice(0, -1)) {
-        await keyboard.pressKey(key);
+        const command = `powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('${psKeys}')"`;
+
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error('Hotkey error:', error);
+            reject(error);
+            return;
+          }
+          resolve();
+        });
+      } catch (error) {
+        console.error('Hotkey error:', error);
+        reject(error);
       }
-
-      const finalKey = normalizedKeys[normalizedKeys.length - 1];
-      await keyboard.releaseKey(finalKey);
-
-      for (const key of normalizedKeys.slice(0, -1).reverse()) {
-        await keyboard.releaseKey(key);
-      }
-    } catch (error) {
-      console.error('Error pressing hotkey:', error);
-      throw error;
-    }
+    });
   }
 
   async typeString(text: string): Promise<void> {
-    try {
-      await keyboard.type(text);
-    } catch (error) {
-      console.error('Error typing string:', error);
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        const escapedText = text.replace(/'/g, "''");
+        const command = `powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('${escapedText}')"`;
+
+        exec(command, (error) => {
+          if (error) {
+            console.error('TypeString error:', error);
+            reject(error);
+            return;
+          }
+          resolve();
+        });
+      } catch (error) {
+        console.error('TypeString error:', error);
+        reject(error);
+      }
+    });
   }
 }
