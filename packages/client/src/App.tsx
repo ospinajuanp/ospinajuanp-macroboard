@@ -87,7 +87,10 @@ function App() {
       case 'CONFIG_UPDATE':
         if (message.grid) setGrid(message.grid);
         if (message.buttons) {
-          console.log('[CONFIG_UPDATE] buttons:', JSON.stringify(message.buttons, null, 2));
+          console.log('[CONFIG_UPDATE] received, count:', message.buttons.length);
+          message.buttons.forEach((b, i) => {
+            console.log(`  [${i}] ${b.id} color=${b.color}`);
+          });
           setButtons(message.buttons);
         }
         break;
@@ -196,8 +199,6 @@ function App() {
             let isActive = false;
             let activeIcon = button.icon || 'play';
             let activeColor = button.color || 'bg-deckstream-primary';
-
-            console.log('[RENDER] button:', button.id, 'color:', button.color, 'activeColor:', activeColor);
 
             if (button.action === 'OBS_RECORD') {
               isActive = obsState.recording;
