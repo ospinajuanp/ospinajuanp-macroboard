@@ -134,11 +134,10 @@ export default function AdminPage() {
       {status !== 'connected' && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex flex-col items-center justify-center z-50">
           <div className="relative mb-6">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-deckstream-primary/30 border-t-deckstream-primary rounded-full animate-spin" />
             </div>
+            <div className="w-6 h-6 bg-deckstream-primary rounded-full animate-pulse" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
           <p className="text-gray-400">Esperando conexion con el servidor...</p>
