@@ -14,7 +14,7 @@ export interface Button {
   color?: string;
 }
 
-export type ActionType = 'OBS_SCENE' | 'HOTKEY' | 'MACRO';
+export type ActionType = 'OBS_SCENE' | 'OBS_MUTE' | 'OBS_RECORD' | 'OBS_STREAM' | 'HOTKEY' | 'MACRO';
 
 export interface OBSAction {
   type: 'OBS_SCENE';

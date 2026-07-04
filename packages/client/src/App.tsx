@@ -186,6 +186,10 @@ function App() {
               scene: '🎬',
               alert: '🔔',
               key: '⌨',
+              star: '⭐',
+              heart: '❤️',
+              fire: '🔥',
+              bolt: '⚡',
             };
 
             return (
@@ -218,6 +222,39 @@ function App() {
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <p className="text-xs text-gray-500 mb-2 text-center">Controles OBS</p>
+          <div className="grid gap-3 max-w-md mx-auto" style={{ gridTemplateColumns: `repeat(3, 1fr)` }}>
+            {Object.values(buttons)
+              .filter(b => b.row === -1)
+              .sort((a, b) => a.column - b.column)
+              .map(button => {
+                const state = buttonStates[button.id];
+                const icon = button.icon || 'play';
+                return (
+                  <button
+                    key={button.id}
+                    onClick={() => sendAction(button)}
+                    disabled={!connected}
+                    className={`
+                      aspect-square rounded-2xl flex flex-col items-center justify-center
+                      transition-all duration-150 font-medium
+                      ${button.color || 'bg-deckstream-primary'}
+                      ${!connected ? 'opacity-50' : 'active:scale-95'}
+                      ${state?.pressed ? 'scale-95 opacity-80' : ''}
+                      touch-manipulation
+                    `}
+                  >
+                    <span className="text-3xl">{iconMap[icon] || iconMap.play}</span>
+                    {button.label && (
+                      <span className="text-xs mt-1 opacity-80">{button.label}</span>
+                    )}
+                  </button>
+                );
+              })}
+          </div>
         </div>
       </main>
 

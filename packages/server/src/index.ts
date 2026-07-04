@@ -13,6 +13,12 @@ const PROJECT_ROOT = path.resolve(SERVER_DIR, '..', '..', '..');
 const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
 const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
 
+const DEFAULT_BUTTONS: Record<string, Button> = {
+  default_mic: { id: 'default_mic', row: -1, column: 0, icon: 'mic', action: 'OBS_MUTE', payload: '', label: 'Mic', color: 'bg-blue-600' },
+  default_record: { id: 'default_record', row: -1, column: 1, icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
+  default_stream: { id: 'default_stream', row: -1, column: 2, icon: 'play', action: 'OBS_STREAM', payload: '', label: 'Stream', color: 'bg-red-600' },
+};
+
 class DeckStreamServer {
   private config = loadConfig();
   private wsManager = new WebSocketManager();
@@ -112,7 +118,7 @@ class DeckStreamServer {
     client.ws.send(JSON.stringify({
       type: 'CONFIG_UPDATE',
       grid: this.config.grid,
-      buttons: this.config.buttons,
+      buttons: { ...DEFAULT_BUTTONS, ...this.config.buttons },
     }));
   }
 
@@ -129,6 +135,21 @@ class DeckStreamServer {
         case 'OBS_SCENE':
           if (this.obsClient) {
             await this.obsClient.setScene(payload || '');
+          }
+          break;
+        case 'OBS_MUTE':
+          if (this.obsClient) {
+            await this.obsClient.toggleMic();
+          }
+          break;
+        case 'OBS_RECORD':
+          if (this.obsClient) {
+            await this.obsClient.toggleRecord();
+          }
+          break;
+        case 'OBS_STREAM':
+          if (this.obsClient) {
+            await this.obsClient.toggleStream();
           }
           break;
         case 'HOTKEY':

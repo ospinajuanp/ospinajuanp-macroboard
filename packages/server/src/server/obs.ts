@@ -127,7 +127,7 @@ export class OBSClient {
     }
   }
 
-  async toggleMic(): Promise<boolean> {
+  async toggleMic(): Promise<void> {
     try {
       const { inputs }: any = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
       const micInput = inputs?.find(
@@ -138,11 +138,27 @@ export class OBSClient {
 
       if (micInput) {
         await this.obs.call('ToggleInputMute', { inputName: micInput.inputName });
-        return !this.state.micMuted;
       }
-      return this.state.micMuted;
     } catch (error) {
       console.error('Failed to toggle mic:', error);
+      throw error;
+    }
+  }
+
+  async toggleRecord(): Promise<void> {
+    try {
+      await this.obs.call('ToggleRecord');
+    } catch (error) {
+      console.error('Failed to toggle record:', error);
+      throw error;
+    }
+  }
+
+  async toggleStream(): Promise<void> {
+    try {
+      await this.obs.call('ToggleStream');
+    } catch (error) {
+      console.error('Failed to toggle stream:', error);
       throw error;
     }
   }

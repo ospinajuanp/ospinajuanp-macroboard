@@ -89,6 +89,7 @@ export default function AdminPage() {
       action: editForm.action || 'HOTKEY',
       payload: editForm.payload || '',
       label: editForm.label,
+      color: editForm.color,
     };
 
     const newButtons = { ...buttons, [buttonId]: newButton };
