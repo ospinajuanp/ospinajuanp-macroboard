@@ -245,12 +245,12 @@ export default function AdminPage() {
 
                 {showIconPicker && (
                   <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]" onClick={() => setShowIconPicker(false)}>
-                    <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-gray-800 rounded-xl p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-semibold">Seleccionar Icono</h4>
                         <button onClick={() => setShowIconPicker(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
                       </div>
-                      <div className="grid grid-cols-4 gap-3 max-h-[50vh] overflow-y-auto pr-2">
+                      <div className="grid grid-cols-4 gap-2 p-1">
                         {ICON_OPTIONS.map((icon) => (
                           <button
                             key={icon.value}
