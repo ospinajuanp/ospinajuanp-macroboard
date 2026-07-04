@@ -3,15 +3,17 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   safelist: [
     'bg-red-600',
-    'bg-orange-600',
-    'bg-yellow-500',
+    'bg-orange-500',
+    'bg-yellow-400',
+    'bg-green-500',
     'bg-green-600',
-    'bg-teal-600',
+    'bg-cyan-500',
+    'bg-blue-500',
     'bg-blue-600',
-    'bg-indigo-600',
     'bg-purple-600',
-    'bg-pink-600',
+    'bg-pink-500',
     'bg-gray-600',
+    'bg-rose-500',
   ],
   theme: {
     extend: {
