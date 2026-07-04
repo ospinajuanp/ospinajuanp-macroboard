@@ -29,7 +29,7 @@ export interface ServerConfig {
 }
 
 export interface WSClientMessage {
-  type: 'TRIGGER' | 'CONFIG_UPDATE' | 'CLIENT_TYPE';
+  type: 'TRIGGER' | 'CONFIG_UPDATE' | 'CLIENT_TYPE' | 'GET_SCENES';
   buttonId?: string;
   action?: ActionType;
   payload?: string;
@@ -38,7 +38,7 @@ export interface WSClientMessage {
 }
 
 export interface WSServerMessage {
-  type: 'ACTION_ACK' | 'OBS_STATE' | 'CONFIG_UPDATE';
+  type: 'ACTION_ACK' | 'OBS_STATE' | 'CONFIG_UPDATE' | 'OBS_SCENES';
   buttonId?: string;
   success?: boolean;
   obsConnected?: boolean;
@@ -48,4 +48,5 @@ export interface WSServerMessage {
   streaming?: boolean;
   currentScene?: string;
   buttons?: Button[];
+  scenes?: string[];
 }

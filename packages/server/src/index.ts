@@ -105,6 +105,23 @@ class DeckStreamServer {
       case 'CONFIG_UPDATE':
         this.handleConfigUpdate(message);
         break;
+      case 'GET_SCENES':
+        await this.handleGetScenes(client);
+        break;
+    }
+  }
+
+  private async handleGetScenes(client: Client): Promise<void> {
+    if (!this.obsClient) {
+      client.ws.send(JSON.stringify({ type: 'OBS_SCENES', scenes: [] }));
+      return;
+    }
+
+    try {
+      const result = await this.obsClient.getScenes();
+      client.ws.send(JSON.stringify({ type: 'OBS_SCENES', scenes: result }));
+    } catch {
+      client.ws.send(JSON.stringify({ type: 'OBS_SCENES', scenes: [] }));
     }
   }
 

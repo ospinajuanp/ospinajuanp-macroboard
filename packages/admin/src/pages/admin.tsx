@@ -47,6 +47,7 @@ export default function AdminPage() {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [obsConnected, setObsConnected] = useState(true);
   const [obsReconnecting, setObsReconnecting] = useState(false);
+  const [loadingScenes, setLoadingScenes] = useState(false);
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
@@ -61,6 +62,10 @@ export default function AdminPage() {
         setObsReconnecting(lastMessage.obsReconnecting ?? false);
       }
     }
+    if (lastMessage?.type === 'OBS_SCENES' && lastMessage.scenes) {
+      setLoadingScenes(false);
+      handleScenesLoaded(lastMessage.scenes);
+    }
   }, [lastMessage]);
 
   useEffect(() => {
@@ -73,6 +78,37 @@ export default function AdminPage() {
     setSelectedButtonId('__new__');
     setIsNewButton(true);
     setEditForm({ icon: 'play', action: 'HOTKEY', payload: '', label: '', color: 'bg-blue-600' });
+  };
+
+  const handleLoadScenes = () => {
+    if (!obsConnected) return;
+    setLoadingScenes(true);
+    sendMessage({ type: 'GET_SCENES' });
+  };
+
+  const handleScenesLoaded = (scenes: string[]) => {
+    const existingSceneNames = new Set(
+      buttons.filter(b => b.action === 'OBS_SCENE').map(b => b.payload)
+    );
+
+    const newScenes = scenes.filter(scene => !existingSceneNames.has(scene));
+
+    if (newScenes.length === 0) {
+      return;
+    }
+
+    const newButtons: Button[] = newScenes.map(sceneName => ({
+      id: `btn_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      icon: 'scene',
+      action: 'OBS_SCENE',
+      payload: sceneName,
+      label: sceneName,
+      color: 'bg-blue-500',
+    }));
+
+    const updatedButtons = [...buttons, ...newButtons];
+    setButtons(updatedButtons);
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: updatedButtons });
   };
 
   const handleButtonClick = (button: Button) => {
@@ -166,7 +202,7 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-deckstream-primary mb-2">
             ospinajuanp-macroboard Admin
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <span className={`px-3 py-1 rounded-full text-sm ${
               status === 'connected' ? 'bg-green-600' :
               status === 'connecting' ? 'bg-yellow-600' : 'bg-red-600'
@@ -179,6 +215,22 @@ export default function AdminPage() {
             }`}>
               OBS: {obsConnected ? 'Conectado' : 'Desconectado'}
             </span>
+            <button
+              onClick={handleLoadScenes}
+              disabled={!obsConnected || loadingScenes}
+              className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
+                obsConnected && !loadingScenes
+                  ? 'bg-deckstream-primary hover:bg-deckstream-secondary cursor-pointer'
+                  : 'bg-gray-600 cursor-not-allowed'
+              }`}
+            >
+              {loadingScenes ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span>↻</span>
+              )}
+              Cargar Escenas
+            </button>
           </div>
         </header>
 

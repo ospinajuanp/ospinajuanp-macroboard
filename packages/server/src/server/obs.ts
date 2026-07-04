@@ -208,6 +208,11 @@ export class OBSClient {
     this.updateState({ streaming: status.outputActive || false });
   }
 
+  async getScenes(): Promise<string[]> {
+    const result = await this.obs.call('GetSceneList');
+    return result.scenes.map((s: any) => s.sceneName);
+  }
+
   getState(): OBSState {
     return this.state;
   }
