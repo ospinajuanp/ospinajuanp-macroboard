@@ -29,11 +29,12 @@ export interface ServerConfig {
 }
 
 export interface WSClientMessage {
-  type: 'TRIGGER' | 'CONFIG_UPDATE';
+  type: 'TRIGGER' | 'CONFIG_UPDATE' | 'CLIENT_TYPE';
   buttonId?: string;
   action?: ActionType;
   payload?: string;
   buttons?: Button[];
+  clientType?: 'mobile' | 'admin';
 }
 
 export interface WSServerMessage {

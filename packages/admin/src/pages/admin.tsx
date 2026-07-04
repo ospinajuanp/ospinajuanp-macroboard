@@ -43,6 +43,7 @@ export default function AdminPage() {
   const [buttons, setButtons] = useState<Button[]>([]);
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Button>>({});
+  const [isNewButton, setIsNewButton] = useState(false);
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
@@ -51,43 +52,49 @@ export default function AdminPage() {
   }, [lastMessage]);
 
   const handleAddButton = () => {
-    const newButton: Button = {
-      id: `btn_${Date.now()}`,
-      icon: 'play',
-      action: 'HOTKEY',
-      payload: '',
-      label: '',
-      color: 'bg-blue-600',
-    };
-    const newButtons = [...buttons, newButton];
-    setButtons(newButtons);
-    setSelectedButtonId(newButton.id);
-    setEditForm(newButton);
+    setSelectedButtonId('__new__');
+    setIsNewButton(true);
+    setEditForm({ icon: 'play', action: 'HOTKEY', payload: '', label: '', color: 'bg-blue-600' });
   };
 
   const handleButtonClick = (button: Button) => {
     setSelectedButtonId(button.id);
+    setIsNewButton(false);
     setEditForm({ ...button });
   };
 
   const handleSaveButton = () => {
     if (!selectedButtonId) return;
 
-    const newButtons = buttons.map((b) =>
-      b.id === selectedButtonId
-        ? {
-            ...b,
-            icon: editForm.icon || b.icon,
-            action: editForm.action || b.action,
-            payload: editForm.payload ?? b.payload,
-            label: editForm.label ?? b.label,
-            color: editForm.color ?? b.color,
-          }
-        : b
-    );
+    let newButtons: Button[];
+    if (isNewButton) {
+      const newButton: Button = {
+        id: `btn_${Date.now()}`,
+        icon: editForm.icon || 'play',
+        action: editForm.action || 'HOTKEY',
+        payload: editForm.payload || '',
+        label: editForm.label || '',
+        color: editForm.color || 'bg-blue-600',
+      };
+      newButtons = [...buttons, newButton];
+    } else {
+      newButtons = buttons.map((b) =>
+        b.id === selectedButtonId
+          ? {
+              ...b,
+              icon: editForm.icon || b.icon,
+              action: editForm.action || b.action,
+              payload: editForm.payload ?? b.payload,
+              label: editForm.label ?? b.label,
+              color: editForm.color ?? b.color,
+            }
+          : b
+      );
+    }
     setButtons(newButtons);
     setSelectedButtonId(null);
     setEditForm({});
+    setIsNewButton(false);
 
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
@@ -118,12 +125,6 @@ export default function AdminPage() {
               {status === 'connected' ? 'Conectado' :
                status === 'connecting' ? 'Conectando...' : 'Desconectado'}
             </span>
-            <button
-              onClick={handleAddButton}
-              className="px-4 py-2 rounded-lg font-medium transition-colors bg-deckstream-primary text-white"
-            >
-              + Agregar Boton
-            </button>
           </div>
         </header>
 
@@ -148,16 +149,19 @@ export default function AdminPage() {
                 </button>
               );
             })}
-            {buttons.length === 0 && (
-              <p className="text-gray-500 py-4">No hay botones. Haz click en &quot;Agregar Boton&quot; para comenzar.</p>
-            )}
+            <button
+              onClick={handleAddButton}
+              className="w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-150 font-medium text-xl border-2 border-dashed border-gray-500 text-gray-500 hover:border-deckstream-primary hover:text-deckstream-primary"
+            >
+              <span>+</span>
+            </button>
           </div>
         </div>
 
         {selectedButtonId && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4">Editar Boton</h3>
+              <h3 className="text-xl font-semibold mb-4">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
 
               <div className="space-y-4">
                 <div>

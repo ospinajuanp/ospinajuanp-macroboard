@@ -5,6 +5,7 @@ export interface Client {
   id: string;
   ws: WebSocket;
   connected: boolean;
+  clientType?: 'mobile' | 'admin';
 }
 
 export type MessageHandler = (client: Client, message: WSClientMessage) => void;
@@ -37,6 +38,10 @@ export class WebSocketManager {
       ws.on('message', (data: Buffer) => {
         try {
           const message = JSON.parse(data.toString()) as WSClientMessage;
+          if (message.type === 'CLIENT_TYPE' && message.clientType) {
+            client.clientType = message.clientType;
+            return;
+          }
           if (this.messageHandler) {
             this.messageHandler(client, message);
           }
