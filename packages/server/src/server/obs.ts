@@ -182,13 +182,8 @@ export class OBSClient {
   async toggleRecord(): Promise<void> {
     try {
       console.log('[OBS] toggleRecord called, current state:', this.state.recording);
-      if (this.state.recording) {
-        console.log('[OBS] Stopping record...');
-        await this.obs.call('StopRecord');
-      } else {
-        console.log('[OBS] Starting record...');
-        await this.obs.call('StartRecord');
-      }
+      console.log('[OBS] Using ToggleRecord...');
+      await this.obs.call('ToggleRecord');
     } catch (error) {
       console.error('Failed to toggle record:', error);
       throw error;
