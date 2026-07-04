@@ -190,25 +190,21 @@ function App() {
           {buttons.map((button) => {
             const state = buttonStates[button.id];
 
-            let isActive = false;
             let activeIcon = button.icon || 'play';
             let activeColor = button.color || 'bg-deckstream-primary';
+            let isSceneActive = false;
 
             if (button.action === 'OBS_RECORD') {
-              isActive = obsState.recording;
-              activeIcon = isActive ? 'stop' : 'play';
-              activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+              activeIcon = obsState.recording ? 'stop' : 'play';
+              activeColor = obsState.recording ? 'bg-red-600 animate-pulse' : 'bg-green-600';
             } else if (button.action === 'OBS_STREAM') {
-              isActive = obsState.streaming;
-              activeIcon = isActive ? 'stop' : 'play';
-              activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+              activeIcon = obsState.streaming ? 'stop' : 'play';
+              activeColor = obsState.streaming ? 'bg-red-600 animate-pulse' : 'bg-green-600';
             } else if (button.action === 'OBS_SCENE' && obsState.currentScene) {
-              isActive = obsState.currentScene === button.payload;
+              isSceneActive = obsState.currentScene === button.payload;
             }
 
-            const isSceneActive = button.action === 'OBS_SCENE' && obsState.currentScene === button.payload;
             const borderClass = isSceneActive ? 'ring-4 ring-white' : '';
-
             const className = `w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all duration-150 font-medium ${activeColor} ${borderClass} ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'} ${state?.pressed ? 'scale-95 opacity-80' : ''} touch-manipulation`;
 
             return (
