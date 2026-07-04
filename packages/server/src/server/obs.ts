@@ -46,8 +46,22 @@ export class OBSClient {
       this.scheduleReconnect();
     });
 
-    (this.obs as any).on('Identified', () => {
+    (this.obs as any).on('Identified', async () => {
       console.log('[OBS] Authentication successful');
+      try {
+        const recordState = await this.obs.call('GetRecordStatus');
+        console.log('[OBS] Initial record status:', recordState);
+        this.updateState({ recording: recordState.outputActive || false });
+      } catch (e) {
+        console.log('[OBS] Could not get record status:', e);
+      }
+      try {
+        const streamState = await this.obs.call('GetStreamStatus');
+        console.log('[OBS] Initial stream status:', streamState);
+        this.updateState({ streaming: streamState.outputActive || false });
+      } catch (e) {
+        console.log('[OBS] Could not get stream status:', e);
+      }
     });
 
     (this.obs as any).on('CurrentProgramSceneChanged', (data: any) => {
@@ -55,10 +69,12 @@ export class OBSClient {
     });
 
     (this.obs as any).on('StreamStateChanged', (data: any) => {
+      console.log('[OBS] StreamStateChanged:', data);
       this.updateState({ streaming: data.outputActive });
     });
 
     (this.obs as any).on('RecordingStateChanged', (data: any) => {
+      console.log('[OBS] RecordingStateChanged:', data);
       this.updateState({ recording: data.outputActive });
     });
 
@@ -165,9 +181,12 @@ export class OBSClient {
 
   async toggleRecord(): Promise<void> {
     try {
+      console.log('[OBS] toggleRecord called, current state:', this.state.recording);
       if (this.state.recording) {
+        console.log('[OBS] Stopping record...');
         await this.obs.call('StopRecord');
       } else {
+        console.log('[OBS] Starting record...');
         await this.obs.call('StartRecord');
       }
     } catch (error) {
