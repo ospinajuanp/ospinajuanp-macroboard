@@ -111,6 +111,20 @@ class DeckStreamServer {
 
   private handleClientConnect(client: Client): void {
     this.sendConfigToClient(client);
+    this.sendOBSStateToClient(client);
+  }
+
+  private sendOBSStateToClient(client: Client): void {
+    if (this.obsClient) {
+      const state = this.obsClient.getState();
+      client.ws.send(JSON.stringify({
+        type: 'OBS_STATE',
+        micMuted: state.micMuted,
+        recording: state.recording,
+        streaming: state.streaming,
+        currentScene: state.currentScene || undefined,
+      }));
+    }
   }
 
   private sendConfigToClient(client: Client): void {
