@@ -74,17 +74,17 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
     return reply.status(404).send('Not found');
   });
 
-  app.get('/assets/:path*', async (request, reply) => {
-    const params = request.params as { path?: string };
-    const filePath = params.path || '';
-    const fullPath = path.join(clientDistPath, 'assets', filePath);
+  app.get('/assets/*', async (request, reply) => {
+    const urlPath = request.url.replace('/assets/', '');
+    const fullPath = path.join(clientDistPath, 'assets', urlPath);
+    console.log('DEBUG assets request:', request.url, '-> urlPath:', urlPath, '-> fullPath:', fullPath, 'exists:', fs.existsSync(fullPath));
     if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
       const ext = path.extname(fullPath);
       const contentType = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
       const content = fs.readFileSync(fullPath);
       return reply.type(contentType).send(content);
     }
-    return reply.status(404).send('Not found');
+    return reply.status(404).send('Not found: ' + fullPath);
   });
 
   app.get('/_next*', async (request, reply) => {
