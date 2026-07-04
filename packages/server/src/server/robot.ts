@@ -27,6 +27,7 @@ export class HotkeyManager {
     tab: 'tab',
     backspace: 'backspace',
     delete: 'delete',
+    del: 'delete',
     up: 'up',
     down: 'down',
     left: 'left',
@@ -43,6 +44,59 @@ export class HotkeyManager {
     f10: 'f10',
     f11: 'f11',
     f12: 'f12',
+    numlock: 'numlock',
+    num_lock: 'numlock',
+    pause: 'pause',
+    break: 'pause',
+    printscreen: 'print',
+    print: 'print',
+    sysreq: 'print',
+    insert: 'insert',
+    home: 'home',
+    end: 'end',
+    pageup: 'pageup',
+    page_up: 'pageup',
+    pagedown: 'pagedown',
+    page_down: 'pagedown',
+    numpad_0: 'numpad0',
+    numpad_1: 'numpad1',
+    numpad_2: 'numpad2',
+    numpad_3: 'numpad3',
+    numpad_4: 'numpad4',
+    numpad_5: 'numpad5',
+    numpad_6: 'numpad6',
+    numpad_7: 'numpad7',
+    numpad_8: 'numpad8',
+    numpad_9: 'numpad9',
+    numpad_add: 'numpad_add',
+    numpad_subtract: 'numpad_sub',
+    numpad_multiply: 'numpad_mult',
+    numpad_divide: 'numpad_div',
+    numpad_enter: 'numpad_enter',
+    numpad_decimal: 'numpad_dot',
+    numpad_dot: 'numpad_dot',
+    numpad_separator: 'numpad_separator',
+    backquote: 'backquote',
+    quotes: 'quote',
+    apostrophe: "'",
+    minus: 'minus',
+    underscore: 'minus',
+    equal: 'equal',
+    plus: 'equal',
+    bracket_left: 'bracket_left',
+    bracket_right: 'bracket_right',
+    braces_left: 'bracket_left',
+    braces_right: 'bracket_right',
+    backslash: 'backslash',
+    pipe: 'backslash',
+    semicolon: 'semicolon',
+    colon: 'semicolon',
+    comma: 'comma',
+    less: 'comma',
+    period: 'period',
+    greater: 'period',
+    slash: 'slash',
+    question: 'slash',
   };
 
   isAvailable(): boolean {
@@ -51,8 +105,7 @@ export class HotkeyManager {
 
   async pressHotkey(keys: string[]): Promise<void> {
     if (!robot) {
-      console.warn('robotjs not available, cannot press hotkey');
-      return;
+      throw new Error('RobotJS no esta disponible');
     }
 
     try {
@@ -71,8 +124,7 @@ export class HotkeyManager {
         robot.keyToggle(key, 'up');
       }
     } catch (error) {
-      console.error('Failed to press hotkey:', error);
-      throw error;
+      throw new Error(`Hotkey no soportado: ${keys.join('+')}`);
     }
   }
 
