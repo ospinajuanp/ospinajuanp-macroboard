@@ -11,7 +11,7 @@
     "build:server": "pnpm --filter @ospinajuanp-macroboard/server build",
     "build:admin": "pnpm --filter @ospinajuanp-macroboard/admin build",
     "build:client": "pnpm --filter @ospinajuanp-macroboard/client build",
-    "clean": "pnpm -r exec rimraf .next dist out",
+    "clean": "pnpm -r exec rimraf .next dist out && rimraf config.json",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "package": "pnpm --filter @ospinajuanp-macroboard/server package"
