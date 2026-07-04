@@ -184,6 +184,10 @@ export class OBSClient {
       console.log('[OBS] toggleRecord called, current state:', this.state.recording);
       console.log('[OBS] Using ToggleRecord...');
       await this.obs.call('ToggleRecord');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const status = await this.obs.call('GetRecordStatus');
+      console.log('[OBS] Record status after toggle:', status);
+      this.updateState({ recording: status.outputActive || false });
     } catch (error) {
       console.error('Failed to toggle record:', error);
       throw error;
@@ -192,11 +196,13 @@ export class OBSClient {
 
   async toggleStream(): Promise<void> {
     try {
-      if (this.state.streaming) {
-        await this.obs.call('StopStream');
-      } else {
-        await this.obs.call('StartStream');
-      }
+      console.log('[OBS] toggleStream called, current state:', this.state.streaming);
+      console.log('[OBS] Using ToggleStream...');
+      await this.obs.call('ToggleStream');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const status = await this.obs.call('GetStreamStatus');
+      console.log('[OBS] Stream status after toggle:', status);
+      this.updateState({ streaming: status.outputActive || false });
     } catch (error) {
       console.error('Failed to toggle stream:', error);
       throw error;
