@@ -8,12 +8,14 @@ export interface Client {
 }
 
 export type MessageHandler = (client: Client, message: WSClientMessage) => void;
+export type ConnectionHandler = (client: Client) => void;
 export type StateChangeHandler = (state: WSServerMessage) => void;
 
 export class WebSocketManager {
   private wss: WebSocketServer | null = null;
   private clients: Map<string, Client> = new Map();
   private messageHandler: MessageHandler | null = null;
+  private connectionHandler: ConnectionHandler | null = null;
   private stateChangeHandler: StateChangeHandler | null = null;
 
   start(port: number, onMessage: MessageHandler): void {
@@ -27,6 +29,10 @@ export class WebSocketManager {
       this.clients.set(clientId, client);
 
       console.log(`Client connected: ${clientId}`);
+
+      if (this.connectionHandler) {
+        this.connectionHandler(client);
+      }
 
       ws.on('message', (data: Buffer) => {
         try {
@@ -72,6 +78,10 @@ export class WebSocketManager {
     if (client && client.connected && client.ws.readyState === WebSocket.OPEN) {
       client.ws.send(JSON.stringify(message));
     }
+  }
+
+  setConnectionHandler(handler: ConnectionHandler): void {
+    this.connectionHandler = handler;
   }
 
   setStateChangeHandler(handler: StateChangeHandler): void {

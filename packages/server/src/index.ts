@@ -31,6 +31,7 @@ class DeckStreamServer {
     this.httpServer = await createHTTPServer(DEFAULT_PORT, CLIENT_DIST_PATH, ADMIN_DIST_PATH);
 
     this.wsManager.start(DEFAULT_PORT + 1, this.handleWSMessage.bind(this));
+    this.wsManager.setConnectionHandler(this.handleClientConnect.bind(this));
 
     this.setupOBSConnection();
 
@@ -101,6 +102,18 @@ class DeckStreamServer {
         this.handleConfigUpdate(message);
         break;
     }
+  }
+
+  private handleClientConnect(client: Client): void {
+    this.sendConfigToClient(client);
+  }
+
+  private sendConfigToClient(client: Client): void {
+    client.ws.send(JSON.stringify({
+      type: 'CONFIG_UPDATE',
+      grid: this.config.grid,
+      buttons: this.config.buttons,
+    }));
   }
 
   private async handleTrigger(client: Client, message: WSClientMessage): Promise<void> {
