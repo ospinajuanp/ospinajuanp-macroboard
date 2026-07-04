@@ -4,6 +4,7 @@ import { ServerConfig } from '@ospinajuanp-macroboard/shared';
 
 export interface OBSState {
   connected: boolean;
+  reconnecting: boolean;
   currentScene: string | null;
   recording: boolean;
   streaming: boolean;
@@ -17,6 +18,7 @@ export class OBSClient {
   private config: ServerConfig['obs'];
   private state: OBSState = {
     connected: false,
+    reconnecting: false,
     currentScene: null,
     recording: false,
     streaming: false,
@@ -37,14 +39,14 @@ export class OBSClient {
   private setupEventHandlers(): void {
     (this.obs as any).on('ConnectionOpened', () => {
       console.log('[OBS] WebSocket connected');
-      this.updateState({ connected: true });
+      this.updateState({ connected: true, reconnecting: false });
       this.reconnectAttempts = 0;
       this.broadcastOBSConnection(true);
     });
 
     (this.obs as any).on('ConnectionClosed', () => {
       console.log('[OBS] WebSocket disconnected');
-      this.updateState({ connected: false });
+      this.updateState({ connected: false, reconnecting: true });
       this.stopPolling();
       this.broadcastOBSConnection(false);
       this.scheduleReconnect();

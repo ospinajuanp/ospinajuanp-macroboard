@@ -82,6 +82,7 @@ class DeckStreamServer {
       this.wsManager.broadcast({
         type: 'OBS_STATE',
         obsConnected: state.connected,
+        obsReconnecting: state.reconnecting,
         micMuted: state.micMuted,
         recording: state.recording,
         streaming: state.streaming,

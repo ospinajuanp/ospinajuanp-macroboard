@@ -45,13 +45,19 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState<Partial<Button>>({});
   const [isNewButton, setIsNewButton] = useState(false);
   const [obsConnected, setObsConnected] = useState(true);
+  const [obsReconnecting, setObsReconnecting] = useState(false);
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
       setButtons(lastMessage.buttons);
     }
-    if (lastMessage?.type === 'OBS_STATE' && lastMessage.obsConnected !== undefined) {
-      setObsConnected(lastMessage.obsConnected ?? true);
+    if (lastMessage?.type === 'OBS_STATE') {
+      if (lastMessage.obsConnected !== undefined) {
+        setObsConnected(lastMessage.obsConnected ?? true);
+      }
+      if (lastMessage.obsReconnecting !== undefined) {
+        setObsReconnecting(lastMessage.obsReconnecting ?? false);
+      }
     }
   }, [lastMessage]);
 
@@ -133,9 +139,11 @@ export default function AdminPage() {
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
+  const shouldShowOverlay = status !== 'connected' || (obsReconnecting && !obsConnected);
+
   return (
     <div className="min-h-screen bg-deckstream-dark text-white p-6">
-      {status !== 'connected' && (
+      {shouldShowOverlay && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex flex-col items-center justify-center z-50">
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center justify-center">
@@ -144,7 +152,9 @@ export default function AdminPage() {
             <div className="w-6 h-6 bg-deckstream-primary rounded-full animate-pulse" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
-          <p className="text-gray-400">Esperando conexion con el servidor...</p>
+          <p className="text-gray-400">
+            {status !== 'connected' ? 'Esperando conexion con el servidor...' : 'Esperando conexion con OBS...'}
+          </p>
         </div>
       )}
 

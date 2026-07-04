@@ -42,6 +42,7 @@ export interface WSServerMessage {
   buttonId?: string;
   success?: boolean;
   obsConnected?: boolean;
+  obsReconnecting?: boolean;
   micMuted?: boolean;
   recording?: boolean;
   streaming?: boolean;
