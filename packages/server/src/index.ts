@@ -94,13 +94,9 @@ class DeckStreamServer {
         '-File', scriptPath
       ], {
         detached: true,
-        stdio: 'pipe',
+        stdio: 'ignore',
         windowsHide: true,
       });
-
-      this.trayProcess.stdin!.end();
-      this.trayProcess.stdout!.end();
-      this.trayProcess.stderr!.end();
 
       this.trayProcess.on('error', (err) => {
         console.warn('[System Tray] Failed to start:', err.message);
