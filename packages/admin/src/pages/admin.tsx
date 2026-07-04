@@ -3,6 +3,23 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
@@ -26,6 +43,67 @@ const ICON_OPTIONS = [
   { value: 'fire', label: '🔥' },
   { value: 'bolt', label: '⚡' },
 ];
+
+interface SortableButtonProps {
+  button: Button;
+  iconOption?: { value: string; label: string };
+  isSelected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}
+
+function SortableButton({ button, iconOption, isSelected, onSelect, onDelete }: SortableButtonProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: button.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group"
+      {...attributes}
+      {...listeners}
+    >
+      <button
+        onClick={onSelect}
+        className={`
+          w-16 h-16 rounded-xl flex flex-col items-center justify-center
+          transition-all duration-150 font-medium text-xl cursor-grab
+          ${button.color || 'bg-deckstream-primary'}
+          ${isSelected ? 'ring-4 ring-white' : ''}
+          active:cursor-grabbing
+        `}
+      >
+        <span>{iconOption?.label || '?'}</span>
+        {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
+      </button>
+      <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="w-4 h-4 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center"
+        >
+          ×
+        </button>
+      </div>
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 text-xs pointer-events-none">
+        ⋮⋮
+      </div>
+    </div>
+  );
+}
 
 const COLOR_OPTIONS = [
   { value: 'bg-red-600', label: 'Red' },
@@ -51,8 +129,17 @@ export default function AdminPage() {
   const [obsConnected, setObsConnected] = useState(true);
   const [obsReconnecting, setObsReconnecting] = useState(false);
   const [loadingScenes, setLoadingScenes] = useState(false);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
@@ -171,52 +258,16 @@ export default function AdminPage() {
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
-  const handleMoveButton = (buttonId: string, currentIndex: number, direction: number) => {
-    const newIndex = currentIndex + direction;
-    if (newIndex < 0 || newIndex >= buttons.length) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const newButtons = [...buttons];
-    const [movedButton] = newButtons.splice(currentIndex, 1);
-    newButtons.splice(newIndex, 0, movedButton);
-    setButtons(newButtons);
-    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
-  };
-
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
+    if (over && active.id !== over.id) {
+      const oldIndex = buttons.findIndex((b) => b.id === active.id);
+      const newIndex = buttons.findIndex((b) => b.id === over.id);
+      const newButtons = arrayMove(buttons, oldIndex, newIndex);
+      setButtons(newButtons);
+      sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
     }
-
-    const newButtons = [...buttons];
-    const [draggedButton] = newButtons.splice(draggedIndex, 1);
-    newButtons.splice(dropIndex, 0, draggedButton);
-    setButtons(newButtons);
-    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
   };
 
   const handleDeleteButton = () => {
@@ -302,61 +353,35 @@ export default function AdminPage() {
             </div>
           )}
           <h2 className="text-xl font-semibold mb-4">{t('buttons')}</h2>
-          <div className="flex flex-wrap gap-3">
-            {buttons.map((button, index) => {
-              const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
-              const isDragging = draggedIndex === index;
-              const isDragOver = dragOverIndex === index;
-
-              return (
-                <div
-                  key={button.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
-                  className={`
-                    relative group cursor-grab
-                    ${isDragging ? 'opacity-50' : ''}
-                    ${isDragOver ? 'ring-2 ring-deckstream-primary ring-offset-2 ring-offset-gray-800 rounded-xl' : ''}
-                  `}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={buttons.map(b => b.id)} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-wrap gap-3">
+                {buttons.map((button) => {
+                  const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
+                  return (
+                    <SortableButton
+                      key={button.id}
+                      button={button}
+                      iconOption={iconOption}
+                      isSelected={selectedButtonId === button.id}
+                      onSelect={() => handleButtonClick(button)}
+                      onDelete={() => handleQuickDelete(button.id)}
+                    />
+                  );
+                })}
+                <button
+                  onClick={handleAddButton}
+                  className="w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-150 font-medium text-xl border-2 border-dashed border-gray-500 text-gray-500 hover:border-deckstream-primary hover:text-deckstream-primary"
                 >
-                  <button
-                    onClick={() => handleButtonClick(button)}
-                    className={`
-                      w-16 h-16 rounded-xl flex flex-col items-center justify-center
-                      transition-all duration-150 font-medium text-xl
-                      ${button.color || 'bg-deckstream-primary'}
-                      ${selectedButtonId === button.id ? 'ring-4 ring-white' : ''}
-                      ${isDragOver ? 'ring-0' : ''}
-                    `}
-                  >
-                    <span>{iconOption?.label || '?'}</span>
-                    {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
-                  </button>
-                  <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleQuickDelete(button.id); }}
-                      className="w-4 h-4 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 text-xs">
-                    ⋮⋮
-                  </div>
-                </div>
-              );
-            })}
-            <button
-              onClick={handleAddButton}
-              className="w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-all duration-150 font-medium text-xl border-2 border-dashed border-gray-500 text-gray-500 hover:border-deckstream-primary hover:text-deckstream-primary"
-            >
-              <span>+</span>
-            </button>
-          </div>
+                  <span>+</span>
+                </button>
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
 
         {selectedButtonId && (
