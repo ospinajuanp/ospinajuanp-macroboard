@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Button, ActionType } from '@ospinajuanp-macroboard/shared';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
@@ -40,6 +42,7 @@ const COLOR_OPTIONS = [
 
 export default function AdminPage() {
   const { status, sendMessage, lastMessage } = useWebSocket(WS_URL);
+  const { t } = useTranslation();
   const [buttons, setButtons] = useState<Button[]>([]);
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Button>>({});
@@ -48,6 +51,8 @@ export default function AdminPage() {
   const [obsConnected, setObsConnected] = useState(true);
   const [obsReconnecting, setObsReconnecting] = useState(false);
   const [loadingScenes, setLoadingScenes] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
@@ -177,6 +182,43 @@ export default function AdminPage() {
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newButtons = [...buttons];
+    const [draggedButton] = newButtons.splice(draggedIndex, 1);
+    newButtons.splice(dropIndex, 0, draggedButton);
+    setButtons(newButtons);
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   const handleDeleteButton = () => {
     if (!selectedButtonId) return;
 
@@ -210,21 +252,29 @@ export default function AdminPage() {
 
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-deckstream-primary mb-2">
-            ospinajuanp-macroboard Admin
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-deckstream-primary">
+              ospinajuanp-macroboard Admin
+            </h1>
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
+              className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded"
+            >
+              {i18n.language === 'en' ? 'ES' : 'EN'}
+            </button>
+          </div>
           <div className="flex items-center gap-4 flex-wrap">
             <span className={`px-3 py-1 rounded-full text-sm ${
               status === 'connected' ? 'bg-green-600' :
               status === 'connecting' ? 'bg-yellow-600' : 'bg-red-600'
             }`}>
-              {status === 'connected' ? 'Connected' :
-               status === 'connecting' ? 'Connecting...' : 'Disconnected'}
+              {status === 'connected' ? t('connected') :
+               status === 'connecting' ? t('connecting') : t('disconnected')}
             </span>
             <span className={`px-3 py-1 rounded-full text-sm ${
               obsConnected ? 'bg-green-600/50' : 'bg-red-600/50'
             }`}>
-              OBS: {obsConnected ? 'Connected' : 'Disconnected'}
+              {obsConnected ? t('obsConnected') : t('obsDisconnected')}
             </span>
             <button
               onClick={handleLoadScenes}
@@ -240,7 +290,7 @@ export default function AdminPage() {
               ) : (
                 <span>↻</span>
               )}
-              Load Scenes
+              {t('loadScenes')}
             </button>
           </div>
         </header>
@@ -248,15 +298,31 @@ export default function AdminPage() {
         <div className={`mb-6 bg-gray-800 rounded-xl p-6 ${!obsConnected ? 'opacity-50 pointer-events-none select-none' : ''}`}>
           {!obsConnected && (
             <div className="text-center text-gray-400 py-4 mb-4">
-              OBS is not connected. Reconnecting...
+              {t('obsNotConnected')}
             </div>
           )}
-          <h2 className="text-xl font-semibold mb-4">Buttons</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('buttons')}</h2>
           <div className="flex flex-wrap gap-3">
             {buttons.map((button, index) => {
               const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
+              const isDragging = draggedIndex === index;
+              const isDragOver = dragOverIndex === index;
+
               return (
-                <div key={button.id} className="relative group">
+                <div
+                  key={button.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`
+                    relative group cursor-grab
+                    ${isDragging ? 'opacity-50' : ''}
+                    ${isDragOver ? 'ring-2 ring-deckstream-primary ring-offset-2 ring-offset-gray-800 rounded-xl' : ''}
+                  `}
+                >
                   <button
                     onClick={() => handleButtonClick(button)}
                     className={`
@@ -264,6 +330,7 @@ export default function AdminPage() {
                       transition-all duration-150 font-medium text-xl
                       ${button.color || 'bg-deckstream-primary'}
                       ${selectedButtonId === button.id ? 'ring-4 ring-white' : ''}
+                      ${isDragOver ? 'ring-0' : ''}
                     `}
                   >
                     <span>{iconOption?.label || '?'}</span>
@@ -271,25 +338,14 @@ export default function AdminPage() {
                   </button>
                   <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleMoveButton(button.id, index, -1); }}
-                      disabled={index === 0}
-                      className="w-4 h-4 bg-gray-700 hover:bg-gray-600 rounded text-xs flex items-center justify-center disabled:opacity-30"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMoveButton(button.id, index, 1); }}
-                      disabled={index === buttons.length - 1}
-                      className="w-4 h-4 bg-gray-700 hover:bg-gray-600 rounded text-xs flex items-center justify-center disabled:opacity-30"
-                    >
-                      ↓
-                    </button>
-                    <button
                       onClick={(e) => { e.stopPropagation(); handleQuickDelete(button.id); }}
                       className="w-4 h-4 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center"
                     >
                       ×
                     </button>
+                  </div>
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 text-xs">
+                    ⋮⋮
                   </div>
                 </div>
               );
@@ -307,7 +363,7 @@ export default function AdminPage() {
           <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto py-4 px-2" onClick={handleCancel}>
             <div className="bg-gray-800 rounded-xl p-4 w-full max-w-md my-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">{isNewButton ? 'New Button' : 'Edit Button'}</h3>
+                <h3 className="text-lg font-semibold">{isNewButton ? t('newButton') : t('editButton')}</h3>
                 <button onClick={handleCancel} className="text-gray-400 hover:text-white text-2xl">&times;</button>
               </div>
 
@@ -326,7 +382,7 @@ export default function AdminPage() {
                   <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]" onClick={() => setShowIconPicker(false)}>
                     <div className="bg-gray-800 rounded-xl p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold">Select Icon</h4>
+                        <h4 className="text-lg font-semibold">{t('selectIcon')}</h4>
                         <button onClick={() => setShowIconPicker(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
                       </div>
                       <div className="grid grid-cols-4 gap-2 p-1">
@@ -351,7 +407,7 @@ export default function AdminPage() {
                 )}
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Color</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('color')}</label>
                   <div className="flex flex-wrap gap-2 justify-start">
                     {COLOR_OPTIONS.map((color) => (
                       <button
@@ -368,7 +424,7 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Action Type</label>
+                  <label className="block text-sm text-gray-400 mb-2">{t('actionType')}</label>
                   <select
                     value={editForm.action || 'HOTKEY'}
                     onChange={(e) => setEditForm({ ...editForm, action: e.target.value as ActionType })}
@@ -382,9 +438,9 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    {editForm.action === 'OBS_SCENE' ? 'Scene Name' :
-                     editForm.action === 'HOTKEY' ? 'Select key or combination' :
-                     'Macro'}
+                    {editForm.action === 'OBS_SCENE' ? t('sceneName') :
+                     editForm.action === 'HOTKEY' ? t('selectKey') :
+                     t('macro')}
                   </label>
                   {editForm.action === 'HOTKEY' ? (
                     <KeyboardPicker
@@ -398,20 +454,20 @@ export default function AdminPage() {
                       onChange={(e) => setEditForm({ ...editForm, payload: e.target.value })}
                       placeholder={
                         editForm.action === 'OBS_SCENE' ? 'Just Chatting' :
-                        'Macro name'
+                        t('macroName')
                       }
                       className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
                     />
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Label (optional)</label>
+                  <div>
+                  <label className="block text-sm text-gray-400 mb-2">{t('label')}</label>
                   <input
                     type="text"
                     value={editForm.label || ''}
                     onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                    placeholder="Short name"
+                    placeholder={t('shortName')}
                     className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
                   />
                 </div>
@@ -422,19 +478,19 @@ export default function AdminPage() {
                   onClick={handleSaveButton}
                   className="flex-1 bg-deckstream-primary hover:bg-deckstream-secondary text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Save
+                  {t('save')}
                 </button>
                 <button
                   onClick={handleDeleteButton}
                   className="px-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Delete
+                  {t('delete')}
                 </button>
                 <button
                   onClick={handleCancel}
                   className="px-4 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               </div>
             </div>
@@ -442,22 +498,22 @@ export default function AdminPage() {
         )}
 
         <div className="mt-6 bg-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Configured Buttons</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('configuredButtons')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="text-gray-400 border-b border-gray-700">
-                  <th className="pb-2">Icon</th>
-                  <th className="pb-2">Type</th>
-                  <th className="pb-2">Action</th>
-                  <th className="pb-2">Label</th>
+                  <th className="pb-2">{t('icon')}</th>
+                  <th className="pb-2">{t('type')}</th>
+                  <th className="pb-2">{t('action')}</th>
+                  <th className="pb-2">{t('label')}</th>
                 </tr>
               </thead>
               <tbody>
                 {buttons.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="py-4 text-center text-gray-500">
-                      No buttons configured.
+                      {t('noButtonsConfigured')}
                     </td>
                   </tr>
                 ) : (
