@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --deckstream-primary: #6366f1;
+  --deckstream-secondary: #8b5cf6;
+  --deckstream-accent: #ec4899;
+  --deckstream-dark: #0f172a;
+  --deckstream-darker: #020617;
+}
+
+body {
+  background-color: var(--deckstream-dark);
+  color: #f8fafc;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-grid {
+  @apply aspect-square rounded-xl transition-all duration-150 active:scale-95;
+}
