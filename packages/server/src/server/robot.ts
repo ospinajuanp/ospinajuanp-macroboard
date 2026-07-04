@@ -124,7 +124,8 @@ export class HotkeyManager {
         robot.keyToggle(key, 'up');
       }
     } catch (error) {
-      throw new Error(`Hotkey no soportado: ${keys.join('+')}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Hotkey no soportado: ${keys.join('+')} - ${errorMessage}`);
     }
   }
 
