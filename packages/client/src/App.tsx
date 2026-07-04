@@ -39,6 +39,7 @@ function App() {
     ws.onopen = () => {
       setConnected(true);
       setLastMessage('Conexion establecida');
+      ws.send(JSON.stringify({ type: 'CLIENT_TYPE', clientType: 'mobile' }));
     };
 
     ws.onclose = () => {
