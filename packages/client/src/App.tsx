@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WSClientMessage, WSServerMessage, Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
@@ -29,8 +30,12 @@ function App() {
     currentScene: '',
   });
   const [lastMessage, setLastMessage] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(0);
   const wsRef = React.useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const BUTTONS_PER_PAGE = 12;
+  const totalPages = Math.ceil(buttons.length / BUTTONS_PER_PAGE);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -166,33 +171,41 @@ function App() {
             </div>
             <div className="w-6 h-6 bg-deckstream-primary rounded-full animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('reconnecting')}</h2>
           <p className="text-gray-400">
-            {!connected ? 'Esperando conexion con el servidor...' : 'Esperando conexion con OBS...'}
+            {!connected ? t('waitingServer') : t('waitingOBS')}
           </p>
         </div>
       )}
 
       <header className="p-4 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-bold text-deckstream-primary">ospinajuanp-macroboard</h1>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            connected ? 'bg-green-600' : 'bg-red-600'
-          }`}>
-            {connected ? 'Conectado' : 'Desconectado'}
-          </span>
+          <h1 className="text-xl font-bold text-deckstream-primary">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
+              className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+            >
+              {i18n.language === 'en' ? 'ES' : 'EN'}
+            </button>
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+              connected ? 'bg-green-600' : 'bg-red-600'
+            }`}>
+              {connected ? t('connected') : t('disconnected')}
+            </span>
+          </div>
         </div>
 
         <div className="flex gap-2 text-xs overflow-x-auto pb-1">
           <StatusBadge
             icon="⏺"
-            label={obsState.recording ? 'Recording' : 'Rec'}
+            label={obsState.recording ? t('recording') : t('rec')}
             active={obsState.recording}
             variant={obsState.recording ? 'danger' : 'default'}
           />
           <StatusBadge
             icon="🔴"
-            label={obsState.streaming ? 'Live' : 'Stream'}
+            label={obsState.streaming ? t('live') : t('stream')}
             active={obsState.streaming}
             variant={obsState.streaming ? 'danger' : 'default'}
           />
@@ -202,80 +215,111 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-4 space-y-6">
-        {(() => {
-          const defaultButtons = buttons.filter(b => b.action === 'OBS_RECORD' || b.action === 'OBS_STREAM');
-          const sceneButtons = buttons.filter(b => b.action === 'OBS_SCENE');
-          const otherButtons = buttons.filter(b => b.action !== 'OBS_RECORD' && b.action !== 'OBS_STREAM' && b.action !== 'OBS_SCENE');
+      <main className="flex-1 p-4">
+        <div className="space-y-4">
+          {(() => {
+            const startIndex = currentPage * BUTTONS_PER_PAGE;
+            const pageButtons = buttons.slice(startIndex, startIndex + BUTTONS_PER_PAGE);
 
-          const renderButton = (button: Button) => {
-            const state = buttonStates[button.id];
-            let activeIcon = button.icon || 'play';
-            let activeColor = button.color || 'bg-deckstream-primary';
-            let isSceneActive = false;
+            const defaultButtons = pageButtons.filter(b => b.action === 'OBS_RECORD' || b.action === 'OBS_STREAM');
+            const sceneButtons = pageButtons.filter(b => b.action === 'OBS_SCENE');
+            const otherButtons = pageButtons.filter(b => b.action !== 'OBS_RECORD' && b.action !== 'OBS_STREAM' && b.action !== 'OBS_SCENE');
 
-            if (button.action === 'OBS_RECORD') {
-              activeIcon = obsState.recording ? 'stop' : 'play';
-              activeColor = obsState.recording ? 'bg-red-600 animate-pulse' : 'bg-green-600';
-            } else if (button.action === 'OBS_STREAM') {
-              activeIcon = obsState.streaming ? 'stop' : 'play';
-              activeColor = obsState.streaming ? 'bg-red-600 animate-pulse' : 'bg-green-600';
-            } else if (button.action === 'OBS_SCENE' && obsState.currentScene) {
-              isSceneActive = obsState.currentScene === button.payload;
-            }
+            const renderButton = (button: Button) => {
+              const state = buttonStates[button.id];
+              let activeIcon = button.icon || 'play';
+              let activeColor = button.color || 'bg-deckstream-primary';
+              let isSceneActive = false;
 
-            const borderClass = isSceneActive ? 'ring-4 ring-white' : '';
-            const className = `w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all duration-150 font-medium ${activeColor} ${borderClass} ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'} ${state?.pressed ? 'scale-95 opacity-80' : ''} touch-manipulation`;
+              if (button.action === 'OBS_RECORD') {
+                activeIcon = obsState.recording ? 'stop' : 'play';
+                activeColor = obsState.recording ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+              } else if (button.action === 'OBS_STREAM') {
+                activeIcon = obsState.streaming ? 'stop' : 'play';
+                activeColor = obsState.streaming ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+              } else if (button.action === 'OBS_SCENE' && obsState.currentScene) {
+                isSceneActive = obsState.currentScene === button.payload;
+              }
+
+              const errorClass = state?.success === false ? 'animate-shake ring-4 ring-red-500' : '';
+              const borderClass = isSceneActive ? 'ring-4 ring-white' : '';
+              const className = `w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all duration-150 font-medium ${activeColor} ${borderClass} ${errorClass} ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'} ${state?.pressed ? 'scale-95 opacity-80' : ''} touch-manipulation`;
+
+              return (
+                <button
+                  key={button.id}
+                  onClick={() => sendAction(button)}
+                  disabled={!connected || state?.pending}
+                  className={className}
+                >
+                  <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
+                  {button.label && (
+                    <span className="text-xs mt-1 opacity-80">{button.label}</span>
+                  )}
+                  {state?.pending && (
+                    <span className="text-xs mt-1 opacity-80">...</span>
+                  )}
+                  {state?.success === false && (
+                    <span className="text-xs mt-1 opacity-80">❌</span>
+                  )}
+                </button>
+              );
+            };
 
             return (
-              <button
-                key={button.id}
-                onClick={() => sendAction(button)}
-                disabled={!connected || state?.pending}
-                className={className}
-              >
-                <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
-                {button.label && (
-                  <span className="text-xs mt-1 opacity-80">{button.label}</span>
+              <>
+                {defaultButtons.length > 0 && (
+                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                    <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">{t('control')}</h2>
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {defaultButtons.map(renderButton)}
+                    </div>
+                  </div>
                 )}
-                {state?.pending && (
-                  <span className="text-xs mt-1 opacity-80">...</span>
+
+                {sceneButtons.length > 0 && (
+                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                    <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">{t('scenes')}</h2>
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {sceneButtons.map(renderButton)}
+                    </div>
+                  </div>
                 )}
-              </button>
+
+                {otherButtons.length > 0 && (
+                  <div className="bg-gray-800/50 rounded-2xl p-4">
+                    <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">{t('others')}</h2>
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {otherButtons.map(renderButton)}
+                    </div>
+                  </div>
+                )}
+              </>
             );
-          };
+          })()}
+        </div>
 
-          return (
-            <>
-              {defaultButtons.length > 0 && (
-                <div className="bg-gray-800/50 rounded-2xl p-4">
-                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Control</h2>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    {defaultButtons.map(renderButton)}
-                  </div>
-                </div>
-              )}
-
-              {sceneButtons.length > 0 && (
-                <div className="bg-gray-800/50 rounded-2xl p-4">
-                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Escenas</h2>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    {sceneButtons.map(renderButton)}
-                  </div>
-                </div>
-              )}
-
-              {otherButtons.length > 0 && (
-                <div className="bg-gray-800/50 rounded-2xl p-4">
-                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Otros</h2>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    {otherButtons.map(renderButton)}
-                  </div>
-                </div>
-              )}
-            </>
-          );
-        })()}
+        {totalPages > 1 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm p-4 flex items-center justify-center gap-4">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+              className="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-30 flex items-center justify-center text-xl"
+            >
+              ←
+            </button>
+            <span className="text-sm">
+              {t('page')} {currentPage + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-30 flex items-center justify-center text-xl"
+            >
+              →
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

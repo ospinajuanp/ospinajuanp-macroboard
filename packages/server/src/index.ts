@@ -91,8 +91,8 @@ class DeckStreamServer {
     });
 
     this.obsClient.connect().catch((error) => {
-      console.warn('No se pudo conectar a OBS:', error.message);
-      console.warn('El servidor funcionara, pero sin integracion con OBS.');
+      console.warn('Could not connect to OBS:', error.message);
+      console.warn('Server will continue without OBS integration.');
       this.obsClient = null;
     });
   }
@@ -169,21 +169,21 @@ class DeckStreamServer {
           if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleMic();
           } else {
-            throw new Error('OBS no conectado');
+            throw new Error('OBS not connected');
           }
           break;
         case 'OBS_RECORD':
           if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleRecord();
           } else {
-            throw new Error('OBS no conectado');
+            throw new Error('OBS not connected');
           }
           break;
         case 'OBS_STREAM':
           if (this.obsClient && this.obsClient.isConnected()) {
             await this.obsClient.toggleStream();
           } else {
-            throw new Error('OBS no conectado');
+            throw new Error('OBS not connected');
           }
           break;
         case 'HOTKEY':

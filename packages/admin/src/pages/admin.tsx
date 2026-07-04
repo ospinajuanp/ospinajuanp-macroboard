@@ -5,8 +5,8 @@ import { Button, ActionType } from '@ospinajuanp-macroboard/shared';
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
 const ACTION_TYPES: { value: ActionType; label: string }[] = [
-  { value: 'OBS_SCENE', label: 'Cambiar Escena OBS' },
-  { value: 'HOTKEY', label: 'Atajo de Teclado' },
+  { value: 'OBS_SCENE', label: 'Change OBS Scene' },
+  { value: 'HOTKEY', label: 'Keyboard Hotkey' },
   { value: 'MACRO', label: 'Macro' },
 ];
 
@@ -26,16 +26,16 @@ const ICON_OPTIONS = [
 ];
 
 const COLOR_OPTIONS = [
-  { value: 'bg-red-600', label: 'Rojo' },
-  { value: 'bg-orange-500', label: 'Naranja' },
-  { value: 'bg-yellow-400', label: 'Amarillo' },
-  { value: 'bg-green-500', label: 'Verde' },
-  { value: 'bg-cyan-500', label: 'Cian' },
-  { value: 'bg-blue-500', label: 'Azul' },
-  { value: 'bg-purple-600', label: 'Morado' },
-  { value: 'bg-pink-500', label: 'Rosa' },
-  { value: 'bg-gray-600', label: 'Gris' },
-  { value: 'bg-rose-500', label: 'Rosa fuerte' },
+  { value: 'bg-red-600', label: 'Red' },
+  { value: 'bg-orange-500', label: 'Orange' },
+  { value: 'bg-yellow-400', label: 'Yellow' },
+  { value: 'bg-green-500', label: 'Green' },
+  { value: 'bg-cyan-500', label: 'Cyan' },
+  { value: 'bg-blue-500', label: 'Blue' },
+  { value: 'bg-purple-600', label: 'Purple' },
+  { value: 'bg-pink-500', label: 'Pink' },
+  { value: 'bg-gray-600', label: 'Gray' },
+  { value: 'bg-rose-500', label: 'Rose' },
 ];
 
 export default function AdminPage() {
@@ -166,6 +166,17 @@ export default function AdminPage() {
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
+  const handleMoveButton = (buttonId: string, currentIndex: number, direction: number) => {
+    const newIndex = currentIndex + direction;
+    if (newIndex < 0 || newIndex >= buttons.length) return;
+
+    const newButtons = [...buttons];
+    const [movedButton] = newButtons.splice(currentIndex, 1);
+    newButtons.splice(newIndex, 0, movedButton);
+    setButtons(newButtons);
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
+  };
+
   const handleDeleteButton = () => {
     if (!selectedButtonId) return;
 
@@ -190,9 +201,9 @@ export default function AdminPage() {
             </div>
             <div className="w-6 h-6 bg-deckstream-primary rounded-full animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
+          <h2 className="text-2xl font-bold mb-2">Reconnecting</h2>
           <p className="text-gray-400">
-            {status !== 'connected' ? 'Esperando conexion con el servidor...' : 'Esperando conexion con OBS...'}
+            {status !== 'connected' ? 'Waiting for server connection...' : 'Waiting for OBS connection...'}
           </p>
         </div>
       )}
@@ -207,13 +218,13 @@ export default function AdminPage() {
               status === 'connected' ? 'bg-green-600' :
               status === 'connecting' ? 'bg-yellow-600' : 'bg-red-600'
             }`}>
-              {status === 'connected' ? 'Conectado' :
-               status === 'connecting' ? 'Conectando...' : 'Desconectado'}
+              {status === 'connected' ? 'Connected' :
+               status === 'connecting' ? 'Connecting...' : 'Disconnected'}
             </span>
             <span className={`px-3 py-1 rounded-full text-sm ${
               obsConnected ? 'bg-green-600/50' : 'bg-red-600/50'
             }`}>
-              OBS: {obsConnected ? 'Conectado' : 'Desconectado'}
+              OBS: {obsConnected ? 'Connected' : 'Disconnected'}
             </span>
             <button
               onClick={handleLoadScenes}
@@ -229,7 +240,7 @@ export default function AdminPage() {
               ) : (
                 <span>↻</span>
               )}
-              Cargar Escenas
+              Load Scenes
             </button>
           </div>
         </header>
@@ -237,12 +248,12 @@ export default function AdminPage() {
         <div className={`mb-6 bg-gray-800 rounded-xl p-6 ${!obsConnected ? 'opacity-50 pointer-events-none select-none' : ''}`}>
           {!obsConnected && (
             <div className="text-center text-gray-400 py-4 mb-4">
-              OBS no esta conectado. Reconectando...
+              OBS is not connected. Reconnecting...
             </div>
           )}
-          <h2 className="text-xl font-semibold mb-4">Botones</h2>
+          <h2 className="text-xl font-semibold mb-4">Buttons</h2>
           <div className="flex flex-wrap gap-3">
-            {buttons.map((button) => {
+            {buttons.map((button, index) => {
               const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
               return (
                 <div key={button.id} className="relative group">
@@ -258,12 +269,28 @@ export default function AdminPage() {
                     <span>{iconOption?.label || '?'}</span>
                     {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleQuickDelete(button.id); }}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
+                  <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMoveButton(button.id, index, -1); }}
+                      disabled={index === 0}
+                      className="w-4 h-4 bg-gray-700 hover:bg-gray-600 rounded text-xs flex items-center justify-center disabled:opacity-30"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMoveButton(button.id, index, 1); }}
+                      disabled={index === buttons.length - 1}
+                      className="w-4 h-4 bg-gray-700 hover:bg-gray-600 rounded text-xs flex items-center justify-center disabled:opacity-30"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleQuickDelete(button.id); }}
+                      className="w-4 h-4 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -280,13 +307,13 @@ export default function AdminPage() {
           <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto py-4 px-2" onClick={handleCancel}>
             <div className="bg-gray-800 rounded-xl p-4 w-full max-w-md my-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
+                <h3 className="text-lg font-semibold">{isNewButton ? 'New Button' : 'Edit Button'}</h3>
                 <button onClick={handleCancel} className="text-gray-400 hover:text-white text-2xl">&times;</button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Icono</label>
+                  <label className="block text-sm text-gray-400 mb-2">Icon</label>
                   <button
                     onClick={() => setShowIconPicker(true)}
                     className="w-full bg-gray-700 rounded-lg px-4 py-4 flex items-center justify-center"
@@ -299,7 +326,7 @@ export default function AdminPage() {
                   <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]" onClick={() => setShowIconPicker(false)}>
                     <div className="bg-gray-800 rounded-xl p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold">Seleccionar Icono</h4>
+                        <h4 className="text-lg font-semibold">Select Icon</h4>
                         <button onClick={() => setShowIconPicker(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
                       </div>
                       <div className="grid grid-cols-4 gap-2 p-1">
@@ -341,7 +368,7 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Tipo de Accion</label>
+                  <label className="block text-sm text-gray-400 mb-2">Action Type</label>
                   <select
                     value={editForm.action || 'HOTKEY'}
                     onChange={(e) => setEditForm({ ...editForm, action: e.target.value as ActionType })}
@@ -355,8 +382,8 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    {editForm.action === 'OBS_SCENE' ? 'Nombre de Escena' :
-                     editForm.action === 'HOTKEY' ? 'Selecciona la tecla o combinacion' :
+                    {editForm.action === 'OBS_SCENE' ? 'Scene Name' :
+                     editForm.action === 'HOTKEY' ? 'Select key or combination' :
                      'Macro'}
                   </label>
                   {editForm.action === 'HOTKEY' ? (
@@ -371,7 +398,7 @@ export default function AdminPage() {
                       onChange={(e) => setEditForm({ ...editForm, payload: e.target.value })}
                       placeholder={
                         editForm.action === 'OBS_SCENE' ? 'Just Chatting' :
-                        'Nombre del macro'
+                        'Macro name'
                       }
                       className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
                     />
@@ -379,12 +406,12 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Etiqueta (opcional)</label>
+                  <label className="block text-sm text-gray-400 mb-2">Label (optional)</label>
                   <input
                     type="text"
                     value={editForm.label || ''}
                     onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                    placeholder="Nombre corto"
+                    placeholder="Short name"
                     className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
                   />
                 </div>
@@ -395,19 +422,19 @@ export default function AdminPage() {
                   onClick={handleSaveButton}
                   className="flex-1 bg-deckstream-primary hover:bg-deckstream-secondary text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Guardar
+                  Save
                 </button>
                 <button
                   onClick={handleDeleteButton}
                   className="px-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Eliminar
+                  Delete
                 </button>
                 <button
                   onClick={handleCancel}
                   className="px-4 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Cancelar
+                  Cancel
                 </button>
               </div>
             </div>
@@ -415,22 +442,22 @@ export default function AdminPage() {
         )}
 
         <div className="mt-6 bg-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Botones Configurados</h2>
+          <h2 className="text-xl font-semibold mb-4">Configured Buttons</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="text-gray-400 border-b border-gray-700">
-                  <th className="pb-2">Icono</th>
-                  <th className="pb-2">Tipo</th>
-                  <th className="pb-2">Accion</th>
-                  <th className="pb-2">Etiqueta</th>
+                  <th className="pb-2">Icon</th>
+                  <th className="pb-2">Type</th>
+                  <th className="pb-2">Action</th>
+                  <th className="pb-2">Label</th>
                 </tr>
               </thead>
               <tbody>
                 {buttons.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="py-4 text-center text-gray-500">
-                      No hay botones configurados.
+                      No buttons configured.
                     </td>
                   </tr>
                 ) : (
@@ -481,9 +508,9 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
   const specialKeys = [
     { key: 'escape', label: 'Esc' },
     { key: 'tab', label: 'Tab' },
-    { key: 'space', label: 'Espacio' },
+    { key: 'space', label: 'Space' },
     { key: 'enter', label: 'Enter' },
-    { key: 'backspace', label: 'Borrar' },
+    { key: 'backspace', label: 'Backspace' },
     { key: 'delete', label: 'Del' },
     { key: 'home', label: 'Home' },
     { key: 'end', label: 'End' },
@@ -518,17 +545,17 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
     return (
       <div className="bg-gray-700 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-400">Tecla seleccionada:</span>
+          <span className="text-xs text-gray-400">Selected key:</span>
           <button
             onClick={() => setIsMinimized(false)}
             className="text-xs text-deckstream-primary hover:text-deckstream-secondary"
           >
-            Expandir
+            Expand
           </button>
         </div>
         <div className="flex gap-1 flex-wrap">
           {selectedKeys.length === 0 ? (
-            <span className="text-gray-500 text-sm">Ninguna</span>
+            <span className="text-gray-500 text-sm">None</span>
           ) : (
             selectedKeys.map(key => (
               <span key={key} className="px-2 py-1 bg-deckstream-primary rounded text-xs font-mono">
@@ -541,7 +568,7 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
           onClick={clearAll}
           className="mt-2 w-full bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 rounded-lg transition-colors text-xs"
         >
-          Borrar Todo
+          Clear All
         </button>
       </div>
     );
@@ -550,28 +577,28 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
   return (
     <div className="bg-gray-700 rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-400">Seleccionado:</span>
+          <span className="text-xs text-gray-400">Selected:</span>
         <button
           onClick={() => setIsMinimized(true)}
           className="text-xs text-deckstream-primary hover:text-deckstream-secondary"
         >
-          Minimizar
+          Minimize
         </button>
       </div>
-      <div className="flex gap-1 flex-wrap">
-        {selectedKeys.length === 0 ? (
-          <span className="text-gray-500 text-sm">Ninguna</span>
-        ) : (
-          selectedKeys.map(key => (
-            <span key={key} className="px-2 py-1 bg-deckstream-primary rounded text-xs font-mono">
-              {key.toUpperCase()}
-            </span>
-          ))
-        )}
-      </div>
+        <div className="flex gap-1 flex-wrap">
+          {selectedKeys.length === 0 ? (
+            <span className="text-gray-500 text-sm">None</span>
+          ) : (
+            selectedKeys.map(key => (
+              <span key={key} className="px-2 py-1 bg-deckstream-primary rounded text-xs font-mono">
+                {key.toUpperCase()}
+              </span>
+            ))
+          )}
+        </div>
 
       <div className="border-t border-gray-600 pt-3">
-        <div className="text-xs text-gray-400 mb-2">Modificadores</div>
+        <div className="text-xs text-gray-400 mb-2">Modifiers</div>
         <div className="flex gap-1 flex-wrap">
           {modifiers.map(mod => (
             <button
@@ -590,7 +617,7 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
       </div>
 
       <div className="border-t border-gray-600 pt-3">
-        <div className="text-xs text-gray-400 mb-2">Teclas de Funcion</div>
+        <div className="text-xs text-gray-400 mb-2">Function Keys</div>
         <div className="flex gap-1 flex-wrap">
           {functionKeys.map(key => (
             <button
@@ -609,7 +636,7 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
       </div>
 
       <div className="border-t border-gray-600 pt-3">
-        <div className="text-xs text-gray-400 mb-2">Letras</div>
+        <div className="text-xs text-gray-400 mb-2">Letters</div>
         <div className="flex gap-1 flex-wrap">
           {letters.map(key => (
             <button
