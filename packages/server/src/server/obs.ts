@@ -69,6 +69,13 @@ export class OBSClient {
       } catch (e) {
         console.log('[OBS] Could not get stream status:', e);
       }
+      try {
+        const sceneResult = await this.obs.call('GetCurrentProgramScene');
+        console.log('[OBS] Initial current scene:', sceneResult);
+        this.updateState({ currentScene: sceneResult.currentProgramSceneName || null });
+      } catch (e) {
+        console.log('[OBS] Could not get current scene:', e);
+      }
     });
 
     (this.obs as any).on('CurrentProgramSceneChanged', (data: any) => {
