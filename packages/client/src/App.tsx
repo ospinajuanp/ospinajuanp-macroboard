@@ -19,10 +19,11 @@ interface ButtonState {
 function App() {
   const { t } = useTranslation();
   const [connected, setConnected] = useState(false);
+  const [obsConnected, setObsConnected] = useState(true);
+  const [obsReconnecting, setObsReconnecting] = useState(false);
   const [buttons, setButtons] = useState<Button[]>([]);
   const [buttonStates, setButtonStates] = useState<Record<string, ButtonState>>({});
   const [obsState, setObsState] = useState({
-    micMuted: false,
     recording: false,
     streaming: false,
     currentScene: '',
@@ -67,11 +68,16 @@ function App() {
     switch (message.type) {
       case 'OBS_STATE':
         setObsState({
-          micMuted: message.micMuted || false,
           recording: message.recording || false,
           streaming: message.streaming || false,
           currentScene: message.currentScene || '',
         });
+        if (message.obsConnected !== undefined) {
+          setObsConnected(message.obsConnected ?? true);
+        }
+        if (message.obsReconnecting !== undefined) {
+          setObsReconnecting(message.obsReconnecting ?? false);
+        }
         setButtonStates((prev) => {
           const newStates: Record<string, ButtonState> = {};
           Object.entries(prev).forEach(([id, state]) => {
@@ -154,8 +160,25 @@ function App() {
     bolt: '⚡',
   };
 
+  const shouldShowOverlay = !connected || (obsReconnecting && !obsConnected);
+
   return (
     <div className="min-h-screen bg-deckstream-dark text-white flex flex-col">
+      {shouldShowOverlay && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex flex-col items-center justify-center z-50">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-deckstream-primary/30 border-t-deckstream-primary rounded-full animate-spin" />
+            </div>
+            <div className="w-6 h-6 bg-deckstream-primary rounded-full animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
+          <p className="text-gray-400">
+            {!connected ? 'Esperando conexion con el servidor...' : 'Esperando conexion con OBS...'}
+          </p>
+        </div>
+      )}
+
       <header className="p-4 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold text-deckstream-primary">ospinajuanp-macroboard</h1>
