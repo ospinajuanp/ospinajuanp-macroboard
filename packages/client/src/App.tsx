@@ -12,6 +12,7 @@ const ACTION_ICONS: Record<ActionType, string> = {
 
 interface ButtonState {
   pressed: boolean;
+  pending?: boolean;
   success?: boolean;
 }
 
@@ -71,6 +72,17 @@ function App() {
           streaming: message.streaming || false,
           currentScene: message.currentScene || '',
         });
+        setButtonStates((prev) => {
+          const newStates: Record<string, ButtonState> = {};
+          Object.entries(prev).forEach(([id, state]) => {
+            if (state.pending) {
+              newStates[id] = { ...state, pending: false };
+            } else {
+              newStates[id] = state;
+            }
+          });
+          return newStates;
+        });
         break;
       case 'CONFIG_UPDATE':
         if (message.grid) setGrid(message.grid);
@@ -80,7 +92,7 @@ function App() {
         if (message.buttonId) {
           setButtonStates((prev) => ({
             ...prev,
-            [message.buttonId!]: { pressed: false, success: message.success },
+            [message.buttonId!]: { pressed: false, pending: false, success: message.success },
           }));
           setTimeout(() => {
             setButtonStates((prev) => {
@@ -108,7 +120,7 @@ function App() {
 
     setButtonStates((prev) => ({
       ...prev,
-      [button.id]: { pressed: true },
+      [button.id]: { pressed: true, pending: true },
     }));
 
     const message: WSClientMessage = {
@@ -252,11 +264,12 @@ function App() {
                     <button
                       key={button.id}
                       onClick={() => sendAction(button)}
-                      disabled={!connected}
+                      disabled={!connected || state?.pending}
                       className={`
                         aspect-square rounded-2xl flex flex-col items-center justify-center
                         transition-all duration-150 font-medium
                         ${activeColor}
+                        ${state?.pending ? 'opacity-50 cursor-wait' : ''}
                         ${!connected ? 'opacity-50' : 'active:scale-95'}
                         ${state?.pressed ? 'scale-95 opacity-80' : ''}
                         touch-manipulation
@@ -265,6 +278,9 @@ function App() {
                       <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
                       {button.label && (
                         <span className="text-xs mt-1 opacity-80">{button.label}</span>
+                      )}
+                      {state?.pending && (
+                        <span className="text-xs mt-1 opacity-80">...</span>
                       )}
                     </button>
                   );
