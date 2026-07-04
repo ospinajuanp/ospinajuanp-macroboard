@@ -38,14 +38,12 @@ export class OBSClient {
 
   private setupEventHandlers(): void {
     (this.obs as any).on('ConnectionOpened', () => {
-      console.log('[OBS] WebSocket connected');
       this.updateState({ connected: true, reconnecting: false });
       this.reconnectAttempts = 0;
       this.broadcastOBSConnection(true);
     });
 
     (this.obs as any).on('ConnectionClosed', () => {
-      console.log('[OBS] WebSocket disconnected');
       this.updateState({ connected: false, reconnecting: true });
       this.stopPolling();
       this.broadcastOBSConnection(false);
@@ -53,29 +51,19 @@ export class OBSClient {
     });
 
     (this.obs as any).on('Identified', async () => {
-      console.log('[OBS] Authentication successful');
       this.startPolling();
       try {
         const recordState = await this.obs.call('GetRecordStatus');
-        console.log('[OBS] Initial record status:', recordState);
         this.updateState({ recording: recordState.outputActive || false });
-      } catch (e) {
-        console.log('[OBS] Could not get record status:', e);
-      }
+      } catch (e) { /* ignore */ }
       try {
         const streamState = await this.obs.call('GetStreamStatus');
-        console.log('[OBS] Initial stream status:', streamState);
         this.updateState({ streaming: streamState.outputActive || false });
-      } catch (e) {
-        console.log('[OBS] Could not get stream status:', e);
-      }
+      } catch (e) { /* ignore */ }
       try {
         const sceneResult = await this.obs.call('GetCurrentProgramScene');
-        console.log('[OBS] Initial current scene:', sceneResult);
         this.updateState({ currentScene: sceneResult.currentProgramSceneName || null });
-      } catch (e) {
-        console.log('[OBS] Could not get current scene:', e);
-      }
+      } catch (e) { /* ignore */ }
     });
 
     (this.obs as any).on('CurrentProgramSceneChanged', (data: any) => {
@@ -83,12 +71,10 @@ export class OBSClient {
     });
 
     (this.obs as any).on('StreamStateChanged', (data: any) => {
-      console.log('[OBS] StreamStateChanged:', data);
       this.updateState({ streaming: data.outputActive });
     });
 
     (this.obs as any).on('RecordingStateChanged', (data: any) => {
-      console.log('[OBS] RecordingStateChanged:', data);
       this.updateState({ recording: data.outputActive });
     });
 
@@ -101,27 +87,18 @@ export class OBSClient {
         this.updateState({ micMuted: data.inputMuted });
       }
     });
-
-    (this.obs as any).on('ConnectionError', (error: any) => {
-      console.error('[OBS] Connection error:', error);
-    });
   }
 
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[OBS] Max reconnect attempts reached, giving up');
       return;
     }
 
     this.reconnectAttempts++;
     const delay = Math.min(1000 * this.reconnectAttempts, 10000);
 
-    console.log(`[OBS] Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-
     this.reconnectTimeout = setTimeout(() => {
-      this.connect().catch((err) => {
-        console.error('[OBS] Reconnect failed:', err);
-      });
+      this.connect().catch(() => {});
     }, delay);
   }
 
@@ -161,13 +138,7 @@ export class OBSClient {
   }
 
   async connect(): Promise<void> {
-    try {
-      console.log(`[OBS] Connecting to ws://${this.config.host}:${this.config.port}`);
-      await this.obs.connect(`ws://${this.config.host}:${this.config.port}`, this.config.password);
-    } catch (error: any) {
-      console.error('[OBS] Failed to connect:', error?.message || error);
-      throw error;
-    }
+    await this.obs.connect(`ws://${this.config.host}:${this.config.port}`, this.config.password);
   }
 
   async disconnect(): Promise<void> {
@@ -224,33 +195,17 @@ export class OBSClient {
   }
 
   async toggleRecord(): Promise<void> {
-    try {
-      console.log('[OBS] toggleRecord called, current state:', this.state.recording);
-      console.log('[OBS] Using ToggleRecord...');
-      await this.obs.call('ToggleRecord');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const status = await this.obs.call('GetRecordStatus');
-      console.log('[OBS] Record status after toggle:', status);
-      this.updateState({ recording: status.outputActive || false });
-    } catch (error) {
-      console.error('Failed to toggle record:', error);
-      throw error;
-    }
+    await this.obs.call('ToggleRecord');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const status = await this.obs.call('GetRecordStatus');
+    this.updateState({ recording: status.outputActive || false });
   }
 
   async toggleStream(): Promise<void> {
-    try {
-      console.log('[OBS] toggleStream called, current state:', this.state.streaming);
-      console.log('[OBS] Using ToggleStream...');
-      await this.obs.call('ToggleStream');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const status = await this.obs.call('GetStreamStatus');
-      console.log('[OBS] Stream status after toggle:', status);
-      this.updateState({ streaming: status.outputActive || false });
-    } catch (error) {
-      console.error('Failed to toggle stream:', error);
-      throw error;
-    }
+    await this.obs.call('ToggleStream');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const status = await this.obs.call('GetStreamStatus');
+    this.updateState({ streaming: status.outputActive || false });
   }
 
   getState(): OBSState {

@@ -121,9 +121,8 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
   try {
     await app.listen({ port, host: '0.0.0.0' });
     console.log(`🚀 Servidor HTTP iniciado en http://${ip}:${port}`);
-  } catch (error) {
-    console.error('Error starting HTTP server:', error);
-    throw error;
+  } catch (err) {
+    throw err;
   }
 
   return {

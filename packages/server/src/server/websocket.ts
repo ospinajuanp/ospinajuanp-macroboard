@@ -48,18 +48,17 @@ export class WebSocketManager {
           if (this.messageHandler) {
             this.messageHandler(client, message);
           }
-        } catch (error) {
-          console.error('Failed to parse message:', error);
+        } catch {
+          // ignore malformed messages
         }
       });
 
       ws.on('close', () => {
-        console.log(`Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
       });
 
-      ws.on('error', (error) => {
-        console.error(`Client error (${clientId}):`, error);
+      ws.on('error', () => {
+        // handle error silently
       });
     });
 

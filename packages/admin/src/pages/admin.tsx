@@ -223,11 +223,11 @@ export default function AdminPage() {
         </div>
 
         {selectedButtonId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleCancel}>
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-4" onClick={handleCancel}>
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md my-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-xl font-semibold mb-4">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
 
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Icono</label>
                   <div className="grid grid-cols-4 gap-2">
@@ -387,6 +387,7 @@ interface KeyboardPickerProps {
 
 function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>(value ? value.split('+') : []);
+  const [isMinimized, setIsMinimized] = React.useState(false);
 
   const modifiers = [
     { key: 'ctrl', label: 'Ctrl' },
@@ -436,10 +437,18 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
     onChange('');
   };
 
-  return (
-    <div className="bg-gray-700 rounded-xl p-4 space-y-3">
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-gray-400">Seleccionado:</span>
+  if (isMinimized) {
+    return (
+      <div className="bg-gray-700 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-400">Tecla seleccionada:</span>
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="text-xs text-deckstream-primary hover:text-deckstream-secondary"
+          >
+            Expandir
+          </button>
+        </div>
         <div className="flex gap-1 flex-wrap">
           {selectedKeys.length === 0 ? (
             <span className="text-gray-500 text-sm">Ninguna</span>
@@ -451,6 +460,37 @@ function KeyboardPicker({ value, onChange }: KeyboardPickerProps) {
             ))
           )}
         </div>
+        <button
+          onClick={clearAll}
+          className="mt-2 w-full bg-red-600 hover:bg-red-700 text-white font-medium py-1.5 rounded-lg transition-colors text-xs"
+        >
+          Borrar Todo
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-700 rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-400">Seleccionado:</span>
+        <button
+          onClick={() => setIsMinimized(true)}
+          className="text-xs text-deckstream-primary hover:text-deckstream-secondary"
+        >
+          Minimizar
+        </button>
+      </div>
+      <div className="flex gap-1 flex-wrap">
+        {selectedKeys.length === 0 ? (
+          <span className="text-gray-500 text-sm">Ninguna</span>
+        ) : (
+          selectedKeys.map(key => (
+            <span key={key} className="px-2 py-1 bg-deckstream-primary rounded text-xs font-mono">
+              {key.toUpperCase()}
+            </span>
+          ))
+        )}
       </div>
 
       <div className="border-t border-gray-600 pt-3">

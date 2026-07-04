@@ -2,8 +2,8 @@ let robot: typeof import('robotjs') | null = null;
 
 try {
   robot = require('robotjs');
-} catch (error) {
-  console.warn('robotjs not available, hotkeys disabled');
+} catch {
+  // robotjs not available
 }
 
 export interface HotkeyConfig {
@@ -105,41 +105,26 @@ export class HotkeyManager {
 
   async pressHotkey(keys: string[]): Promise<void> {
     if (!robot) {
-      throw new Error('RobotJS no esta disponible');
+      throw new Error('RobotJS no disponible');
     }
 
-    try {
-      const normalizedKeys = keys.map((k) => this.keyMap[k.toLowerCase()] || k.toLowerCase());
+    const normalizedKeys = keys.map((k) => this.keyMap[k.toLowerCase()] || k.toLowerCase());
+    const downKeys = normalizedKeys.slice(0, -1);
+    const finalKey = normalizedKeys[normalizedKeys.length - 1];
 
-      const downKeys = normalizedKeys.slice(0, -1);
-      const finalKey = normalizedKeys[normalizedKeys.length - 1];
+    for (const key of downKeys) {
+      robot.keyToggle(key, 'down');
+    }
 
-      for (const key of downKeys) {
-        robot.keyToggle(key, 'down');
-      }
+    robot.keyTap(finalKey);
 
-      robot.keyTap(finalKey);
-
-      for (const key of downKeys.reverse()) {
-        robot.keyToggle(key, 'up');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Hotkey no soportado: ${keys.join('+')} - ${errorMessage}`);
+    for (const key of downKeys.reverse()) {
+      robot.keyToggle(key, 'up');
     }
   }
 
   async typeString(text: string): Promise<void> {
-    if (!robot) {
-      console.warn('robotjs not available, cannot type string');
-      return;
-    }
-
-    try {
-      robot.typeString(text);
-    } catch (error) {
-      console.error('Failed to type string:', error);
-      throw error;
-    }
+    if (!robot) return;
+    robot.typeString(text);
   }
 }

@@ -98,8 +98,6 @@ class DeckStreamServer {
   }
 
   private async handleWSMessage(client: Client, message: WSClientMessage): Promise<void> {
-    console.log(`WS message from ${client.id}:`, message);
-
     switch (message.type) {
       case 'TRIGGER':
         await this.handleTrigger(client, message);
@@ -180,14 +178,13 @@ class DeckStreamServer {
       }
 
       client.ws.send(JSON.stringify({ type: 'ACTION_ACK', buttonId, success: true }));
-    } catch (error) {
-      console.error(`Action failed for ${buttonId}:`, error);
+    } catch {
       client.ws.send(JSON.stringify({ type: 'ACTION_ACK', buttonId, success: false }));
     }
   }
 
-  private async executeMacro(macroName: string): Promise<void> {
-    console.log(`Executing macro: ${macroName}`);
+  private async executeMacro(_macroName: string): Promise<void> {
+    // macro execution placeholder
   }
 
   private handleConfigUpdate(message: WSClientMessage): void {
