@@ -51,6 +51,12 @@ export default function AdminPage() {
     }
   }, [lastMessage]);
 
+  useEffect(() => {
+    if (status !== 'connected' && selectedButtonId) {
+      handleCancel();
+    }
+  }, [status]);
+
   const handleAddButton = () => {
     setSelectedButtonId('__new__');
     setIsNewButton(true);
@@ -125,6 +131,20 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-deckstream-dark text-white p-6">
+      {status !== 'connected' && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/60 flex flex-col items-center justify-center z-50">
+          <div className="relative mb-6">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-3 h-3 bg-deckstream-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Reconectando</h2>
+          <p className="text-gray-400">Esperando conexion con el servidor...</p>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-deckstream-primary mb-2">
@@ -141,7 +161,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <div className="mb-6 bg-gray-800 rounded-xl p-6">
+        <div className="mb-6 bg-gray-800 rounded-xl p-6 opacity-50 pointer-events-none select-none">
           <h2 className="text-xl font-semibold mb-4">Botones</h2>
           <div className="flex flex-wrap gap-3">
             {buttons.map((button) => {
