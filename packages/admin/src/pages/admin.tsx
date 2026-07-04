@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { GridConfig, Button, ActionType, WSClientMessage } from '@ospinajuanp-macroboard/shared';
+import { Button, ActionType } from '@ospinajuanp-macroboard/shared';
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
@@ -38,91 +38,69 @@ const COLOR_OPTIONS = [
   { value: 'bg-gray-600', label: 'Gris' },
 ];
 
-function generateButtonId(row: number, column: number): string {
-  return `btn_${row}_${column}`;
-}
-
 export default function AdminPage() {
   const { status, sendMessage, lastMessage } = useWebSocket(WS_URL);
-  const [rows, setRows] = useState(4);
-  const [columns, setColumns] = useState(3);
-  const [buttons, setButtons] = useState<Record<string, Button>>({});
-  const [selectedButton, setSelectedButton] = useState<{ row: number; column: number } | null>(null);
-  const [editMode, setEditMode] = useState(false);
-
+  const [buttons, setButtons] = useState<Button[]>([]);
+  const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Button>>({});
 
   useEffect(() => {
-    if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.grid && lastMessage.buttons) {
-      setRows(lastMessage.grid.rows);
-      setColumns(lastMessage.grid.columns);
+    if (lastMessage?.type === 'CONFIG_UPDATE' && lastMessage.buttons) {
       setButtons(lastMessage.buttons);
     }
   }, [lastMessage]);
 
-  const handleGridSizeChange = () => {
-    sendMessage({
-      type: 'CONFIG_UPDATE',
-      grid: { rows, columns },
-      buttons,
-    });
+  const handleAddButton = () => {
+    const newButton: Button = {
+      id: `btn_${Date.now()}`,
+      icon: 'play',
+      action: 'HOTKEY',
+      payload: '',
+      label: '',
+      color: 'bg-blue-600',
+    };
+    const newButtons = [...buttons, newButton];
+    setButtons(newButtons);
+    setSelectedButtonId(newButton.id);
+    setEditForm(newButton);
   };
 
-  const handleButtonClick = (row: number, column: number) => {
-    if (editMode) {
-      setSelectedButton({ row, column });
-      const buttonId = generateButtonId(row, column);
-      const existingButton = buttons[buttonId];
-      setEditForm(existingButton || { action: 'HOTKEY', payload: '', color: 'bg-deckstream-primary' });
-    }
+  const handleButtonClick = (button: Button) => {
+    setSelectedButtonId(button.id);
+    setEditForm({ ...button });
   };
 
   const handleSaveButton = () => {
-    if (!selectedButton) return;
+    if (!selectedButtonId) return;
 
-    const buttonId = generateButtonId(selectedButton.row, selectedButton.column);
-    const newButton: Button = {
-      id: buttonId,
-      row: selectedButton.row,
-      column: selectedButton.column,
-      icon: editForm.icon || 'play',
-      action: editForm.action || 'HOTKEY',
-      payload: editForm.payload || '',
-      label: editForm.label,
-      color: editForm.color,
-    };
-
-    const newButtons = { ...buttons, [buttonId]: newButton };
+    const newButtons = buttons.map((b) =>
+      b.id === selectedButtonId
+        ? {
+            ...b,
+            icon: editForm.icon || b.icon,
+            action: editForm.action || b.action,
+            payload: editForm.payload ?? b.payload,
+            label: editForm.label ?? b.label,
+            color: editForm.color ?? b.color,
+          }
+        : b
+    );
     setButtons(newButtons);
-    setSelectedButton(null);
+    setSelectedButtonId(null);
     setEditForm({});
 
-    sendMessage({
-      type: 'CONFIG_UPDATE',
-      grid: { rows, columns },
-      buttons: newButtons,
-    });
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
   const handleDeleteButton = () => {
-    if (!selectedButton) return;
+    if (!selectedButtonId) return;
 
-    const buttonId = generateButtonId(selectedButton.row, selectedButton.column);
-    const newButtons = { ...buttons };
-    delete newButtons[buttonId];
+    const newButtons = buttons.filter((b) => b.id !== selectedButtonId);
     setButtons(newButtons);
-    setSelectedButton(null);
+    setSelectedButtonId(null);
     setEditForm({});
 
-    sendMessage({
-      type: 'CONFIG_UPDATE',
-      grid: { rows, columns },
-      buttons: newButtons,
-    });
-  };
-
-  const getButtonByPosition = (row: number, column: number): Button | undefined => {
-    return buttons[generateButtonId(row, column)];
+    sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
   return (
@@ -141,96 +119,45 @@ export default function AdminPage() {
                status === 'connecting' ? 'Conectando...' : 'Desconectado'}
             </span>
             <button
-              onClick={() => setEditMode(!editMode)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                editMode ? 'bg-deckstream-accent text-white' : 'bg-deckstream-primary text-white'
-              }`}
+              onClick={handleAddButton}
+              className="px-4 py-2 rounded-lg font-medium transition-colors bg-deckstream-primary text-white"
             >
-              {editMode ? 'Modo Vista' : 'Modo Edicion'}
+              + Agregar Boton
             </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Configuracion del Grid</h2>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Filas</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={rows}
-                  onChange={(e) => setRows(parseInt(e.target.value) || 1)}
-                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Columnas</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={columns}
-                  onChange={(e) => setColumns(parseInt(e.target.value) || 1)}
-                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleGridSizeChange}
-              className="w-full bg-deckstream-primary hover:bg-deckstream-secondary text-white font-medium py-2 rounded-lg transition-colors"
-            >
-              Aplicar Cambios
-            </button>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Vista Previa del Grid</h2>
-            <div
-              className="grid gap-2"
-              style={{ gridTemplateRows: `repeat(${rows}, 1fr)`, gridTemplateColumns: `repeat(${columns}, 1fr)` }}
-            >
-              {Array.from({ length: rows * columns }).map((_, index) => {
-                const row = Math.floor(index / columns);
-                const col = index % columns;
-                const button = getButtonByPosition(row, col);
-                const iconOption = ICON_OPTIONS.find(i => i.value === button?.icon);
-
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleButtonClick(row, col)}
-                    className={`
-                      aspect-square rounded-xl flex flex-col items-center justify-center
-                      transition-all duration-150 font-medium text-2xl
-                      ${button ? button.color || 'bg-deckstream-primary' : 'bg-gray-700'}
-                      ${editMode ? 'ring-2 ring-deckstream-accent' : ''}
-                      ${selectedButton?.row === row && selectedButton?.column === col ? 'ring-4 ring-white' : ''}
-                    `}
-                  >
-                    {button ? (
-                      <>
-                        <span className="text-2xl">{iconOption?.label || '?'}</span>
-                        {button.label && <span className="text-xs mt-1">{button.label}</span>}
-                      </>
-                    ) : (
-                      <span className="text-gray-500">+</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="mb-6 bg-gray-800 rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-4">Botones</h2>
+          <div className="flex flex-wrap gap-3">
+            {buttons.map((button) => {
+              const iconOption = ICON_OPTIONS.find(i => i.value === button.icon);
+              return (
+                <button
+                  key={button.id}
+                  onClick={() => handleButtonClick(button)}
+                  className={`
+                    w-16 h-16 rounded-xl flex flex-col items-center justify-center
+                    transition-all duration-150 font-medium text-xl
+                    ${button.color || 'bg-deckstream-primary'}
+                    ${selectedButtonId === button.id ? 'ring-4 ring-white' : ''}
+                  `}
+                >
+                  <span>{iconOption?.label || '?'}</span>
+                  {button.label && <span className="text-xs mt-0.5">{button.label}</span>}
+                </button>
+              );
+            })}
+            {buttons.length === 0 && (
+              <p className="text-gray-500 py-4">No hay botones. Haz click en &quot;Agregar Boton&quot; para comenzar.</p>
+            )}
           </div>
         </div>
 
-        {selectedButton && (
+        {selectedButtonId && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-              <h3 className="text-xl font-semibold mb-4">
-                Editar Boton ({selectedButton.row + 1}, {selectedButton.column + 1})
-              </h3>
+              <h3 className="text-xl font-semibold mb-4">Editar Boton</h3>
 
               <div className="space-y-4">
                 <div>
@@ -325,16 +252,14 @@ export default function AdminPage() {
                 >
                   Guardar
                 </button>
-                {buttons[generateButtonId(selectedButton.row, selectedButton.column)] && (
-                  <button
-                    onClick={handleDeleteButton}
-                    className="px-6 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
-                  >
-                    Eliminar
-                  </button>
-                )}
                 <button
-                  onClick={() => { setSelectedButton(null); setEditForm({}); }}
+                  onClick={handleDeleteButton}
+                  className="px-6 bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg transition-colors"
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={() => { setSelectedButtonId(null); setEditForm({}); }}
                   className="px-6 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
                   Cancelar
@@ -350,7 +275,6 @@ export default function AdminPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-gray-400 border-b border-gray-700">
-                  <th className="pb-2">Posicion</th>
                   <th className="pb-2">Icono</th>
                   <th className="pb-2">Tipo</th>
                   <th className="pb-2">Accion</th>
@@ -358,16 +282,15 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {Object.values(buttons).length === 0 ? (
+                {buttons.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-4 text-center text-gray-500">
-                      No hay botones configurados. Haz click en &quot;Modo Edicion&quot; para agregar botones.
+                    <td colSpan={4} className="py-4 text-center text-gray-500">
+                      No hay botones configurados.
                     </td>
                   </tr>
                 ) : (
-                  Object.values(buttons).map((button) => (
+                  buttons.map((button) => (
                     <tr key={button.id} className="border-b border-gray-700">
-                      <td className="py-3">({button.row + 1}, {button.column + 1})</td>
                       <td className="py-3">{ICON_OPTIONS.find(i => i.value === button.icon)?.label || '?'}</td>
                       <td className="py-3">{ACTION_TYPES.find(t => t.value === button.action)?.label}</td>
                       <td className="py-3 font-mono text-sm">{button.payload}</td>

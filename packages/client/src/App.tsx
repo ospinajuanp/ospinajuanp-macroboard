@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { WSClientMessage, WSServerMessage, GridConfig, Button, ActionType } from '@ospinajuanp-macroboard/shared';
+import { WSClientMessage, WSServerMessage, Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
@@ -19,8 +19,7 @@ interface ButtonState {
 function App() {
   const { t } = useTranslation();
   const [connected, setConnected] = useState(false);
-  const [grid, setGrid] = useState<GridConfig>({ rows: 4, columns: 3 });
-  const [buttons, setButtons] = useState<Record<string, Button>>({});
+  const [buttons, setButtons] = useState<Button[]>([]);
   const [buttonStates, setButtonStates] = useState<Record<string, ButtonState>>({});
   const [obsState, setObsState] = useState({
     micMuted: false,
@@ -133,10 +132,6 @@ function App() {
     wsRef.current.send(JSON.stringify(message));
   };
 
-  const getButtonByPosition = (row: number, col: number): Button | undefined => {
-    return buttons[`btn_${row}_${col}`];
-  };
-
   const iconMap: Record<string, string> = {
     play: '▶',
     pause: '⏸',
@@ -190,103 +185,49 @@ function App() {
       </header>
 
       <main className="flex-1 p-4">
-        <div
-          className="grid gap-3 max-w-md mx-auto"
-          style={{
-            gridTemplateRows: `repeat(${grid.rows}, minmax(80px, 1fr))`,
-            gridTemplateColumns: `repeat(${grid.columns}, 1fr)`,
-          }}
-        >
-          {Array.from({ length: grid.rows * grid.columns }).map((_, index) => {
-            const row = Math.floor(index / grid.columns);
-            const col = index % grid.columns;
-            const button = getButtonByPosition(row, col);
-            const state = buttonStates[button?.id || ''];
-            const icon = button?.icon || 'play';
+        <div className="flex flex-wrap gap-3 justify-center">
+          {buttons.map((button) => {
+            const state = buttonStates[button.id];
+
+            let isActive = false;
+            let activeIcon = button.icon || 'play';
+            let activeColor = button.color || 'bg-deckstream-primary';
+
+            if (button.action === 'OBS_RECORD') {
+              isActive = obsState.recording;
+              activeIcon = isActive ? 'stop' : 'play';
+              activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+            } else if (button.action === 'OBS_STREAM') {
+              isActive = obsState.streaming;
+              activeIcon = isActive ? 'stop' : 'play';
+              activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
+            }
 
             return (
               <button
-                key={index}
-                onClick={() => button && sendAction(button)}
-                disabled={!button || !connected}
+                key={button.id}
+                onClick={() => sendAction(button)}
+                disabled={!connected || state?.pending}
                 className={`
-                  aspect-square rounded-2xl flex flex-col items-center justify-center
+                  w-20 h-20 rounded-2xl flex flex-col items-center justify-center
                   transition-all duration-150 font-medium
-                  ${!button ? 'bg-gray-800/50 cursor-default' : button.color || 'bg-deckstream-primary'}
-                  ${!button || !connected ? '' : 'active:scale-95'}
+                  ${activeColor}
+                  ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'}
                   ${state?.pressed ? 'scale-95 opacity-80' : ''}
-                  ${state?.success === false ? 'bg-red-600' : ''}
-                  ${state?.success === true ? 'bg-green-600' : ''}
                   touch-manipulation
                 `}
               >
-                {button ? (
-                  <>
-                    <span className="text-3xl">{iconMap[icon] || iconMap.play}</span>
-                    {button.label && (
-                      <span className="text-xs mt-1 opacity-80">{button.label}</span>
-                    )}
-                    <span className="text-lg mt-1">{ACTION_ICONS[button.action]}</span>
-                  </>
-                ) : (
-                  <span className="text-gray-600">-</span>
+                <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
+                {button.label && (
+                  <span className="text-xs mt-1 opacity-80">{button.label}</span>
+                )}
+                {state?.pending && (
+                  <span className="text-xs mt-1 opacity-80">...</span>
                 )}
               </button>
             );
           })}
         </div>
-
-        {Object.values(buttons).filter(b => b.row === -1).length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <p className="text-xs text-gray-500 mb-2 text-center">Controles OBS</p>
-            <div className="grid gap-3 max-w-md mx-auto" style={{ gridTemplateColumns: `repeat(3, 1fr)` }}>
-              {Object.values(buttons)
-                .filter(b => b.row === -1)
-                .sort((a, b) => a.column - b.column)
-                .map(button => {
-                  const state = buttonStates[button.id];
-
-                  let isActive = false;
-                  let activeIcon = button.icon || 'play';
-                  let activeColor = button.color || 'bg-deckstream-primary';
-
-                  if (button.action === 'OBS_RECORD') {
-                    isActive = obsState.recording;
-                    activeIcon = isActive ? 'stop' : 'play';
-                    activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
-                  } else if (button.action === 'OBS_STREAM') {
-                    isActive = obsState.streaming;
-                    activeIcon = isActive ? 'stop' : 'play';
-                    activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
-                  }
-
-                  return (
-                    <button
-                      key={button.id}
-                      onClick={() => sendAction(button)}
-                      disabled={!connected || state?.pending}
-                      className={`
-                        aspect-square rounded-2xl flex flex-col items-center justify-center
-                        transition-all duration-150 font-medium
-                        ${activeColor}
-                        ${!connected || state?.pending ? 'opacity-50' : 'active:scale-95'}
-                        ${state?.pressed ? 'scale-95 opacity-80' : ''}
-                        touch-manipulation
-                      `}
-                    >
-                      <span className="text-3xl">{iconMap[activeIcon] || iconMap.play}</span>
-                      {button.label && (
-                        <span className="text-xs mt-1 opacity-80">{button.label}</span>
-                      )}
-                      {state?.pending && (
-                        <span className="text-xs mt-1 opacity-80">...</span>
-                      )}
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        )}
       </main>
 
       <footer className="p-4 text-center text-xs text-gray-500">

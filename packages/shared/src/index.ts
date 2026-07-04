@@ -1,12 +1,5 @@
-export interface GridConfig {
-  rows: number;
-  columns: number;
-}
-
 export interface Button {
   id: string;
-  row: number;
-  column: number;
   icon: string;
   action: ActionType;
   payload: string;
@@ -27,8 +20,7 @@ export interface HotkeyAction {
 }
 
 export interface ServerConfig {
-  grid: GridConfig;
-  buttons: Record<string, Button>;
+  buttons: Button[];
   obs: {
     host: string;
     port: number;
@@ -41,8 +33,7 @@ export interface WSClientMessage {
   buttonId?: string;
   action?: ActionType;
   payload?: string;
-  grid?: GridConfig;
-  buttons?: Record<string, Button>;
+  buttons?: Button[];
 }
 
 export interface WSServerMessage {
@@ -53,6 +44,5 @@ export interface WSServerMessage {
   recording?: boolean;
   streaming?: boolean;
   currentScene?: string;
-  grid?: GridConfig;
-  buttons?: Record<string, Button>;
+  buttons?: Button[];
 }

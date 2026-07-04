@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { WSClientMessage, WSServerMessage, GridConfig, Button } from '@ospinajuanp-macroboard/shared';
+import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
 import { ConnectionStatus } from '../types';
 
 interface UseWebSocketReturn {

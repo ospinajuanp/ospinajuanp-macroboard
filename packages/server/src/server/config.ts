@@ -5,11 +5,7 @@ import * as path from 'path';
 export const CONFIG_PATH = path.join(process.cwd(), 'config.json');
 
 export const DEFAULT_CONFIG: ServerConfig = {
-  grid: {
-    rows: 4,
-    columns: 3,
-  },
-  buttons: {},
+  buttons: [],
   obs: {
     host: 'localhost',
     port: 4455,

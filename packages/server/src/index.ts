@@ -13,10 +13,10 @@ const PROJECT_ROOT = path.resolve(SERVER_DIR, '..', '..', '..');
 const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
 const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
 
-const DEFAULT_BUTTONS: Record<string, Button> = {
-  default_record: { id: 'default_record', row: -1, column: 0, icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
-  default_stream: { id: 'default_stream', row: -1, column: 1, icon: 'play', action: 'OBS_STREAM', payload: '', label: 'Stream', color: 'bg-red-600' },
-};
+const DEFAULT_BUTTONS: Button[] = [
+  { id: 'default_record', icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
+  { id: 'default_stream', icon: 'play', action: 'OBS_STREAM', payload: '', label: 'Stream', color: 'bg-red-600' },
+];
 
 class DeckStreamServer {
   private config = loadConfig();
@@ -47,9 +47,8 @@ class DeckStreamServer {
 
   private printConfig(): void {
     console.log('Configuracion cargada:');
-    console.log(`  Grid: ${this.config.grid.rows}x${this.config.grid.columns}`);
     console.log(`  OBS: ${this.config.obs.host}:${this.config.obs.port}`);
-    console.log(`  Botones configurados: ${Object.keys(this.config.buttons).length}`);
+    console.log(`  Botones configurados: ${this.config.buttons.length}`);
     console.log('');
   }
 
@@ -130,8 +129,7 @@ class DeckStreamServer {
   private sendConfigToClient(client: Client): void {
     client.ws.send(JSON.stringify({
       type: 'CONFIG_UPDATE',
-      grid: this.config.grid,
-      buttons: { ...DEFAULT_BUTTONS, ...this.config.buttons },
+      buttons: [...DEFAULT_BUTTONS, ...this.config.buttons],
     }));
   }
 
@@ -191,14 +189,11 @@ class DeckStreamServer {
   }
 
   private handleConfigUpdate(message: WSClientMessage): void {
-    if (message.grid) {
-      this.config.grid = message.grid;
-    }
     if (message.buttons) {
       this.config.buttons = message.buttons;
     }
     saveConfig(this.config);
-    this.wsManager.broadcast({ type: 'CONFIG_UPDATE', grid: this.config.grid, buttons: this.config.buttons });
+    this.wsManager.broadcast({ type: 'CONFIG_UPDATE', buttons: this.config.buttons });
   }
 
   private setupGracefulShutdown(): void {
