@@ -208,11 +208,14 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-4">
-        <div className="flex flex-wrap gap-3 justify-center">
-          {buttons.map((button) => {
-            const state = buttonStates[button.id];
+      <main className="flex-1 p-4 space-y-6">
+        {(() => {
+          const defaultButtons = buttons.filter(b => b.action === 'OBS_RECORD' || b.action === 'OBS_STREAM');
+          const sceneButtons = buttons.filter(b => b.action === 'OBS_SCENE');
+          const otherButtons = buttons.filter(b => b.action !== 'OBS_RECORD' && b.action !== 'OBS_STREAM' && b.action !== 'OBS_SCENE');
 
+          const renderButton = (button: Button) => {
+            const state = buttonStates[button.id];
             let activeIcon = button.icon || 'play';
             let activeColor = button.color || 'bg-deckstream-primary';
             let isSceneActive = false;
@@ -246,8 +249,39 @@ function App() {
                 )}
               </button>
             );
-          })}
-        </div>
+          };
+
+          return (
+            <>
+              {defaultButtons.length > 0 && (
+                <div className="bg-gray-800/50 rounded-2xl p-4">
+                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Control</h2>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {defaultButtons.map(renderButton)}
+                  </div>
+                </div>
+              )}
+
+              {sceneButtons.length > 0 && (
+                <div className="bg-gray-800/50 rounded-2xl p-4">
+                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Escenas</h2>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {sceneButtons.map(renderButton)}
+                  </div>
+                </div>
+              )}
+
+              {otherButtons.length > 0 && (
+                <div className="bg-gray-800/50 rounded-2xl p-4">
+                  <h2 className="text-xs text-gray-400 mb-3 uppercase tracking-wide">Otros</h2>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {otherButtons.map(renderButton)}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </main>
 
       <footer className="p-4 text-center text-xs text-gray-500">
