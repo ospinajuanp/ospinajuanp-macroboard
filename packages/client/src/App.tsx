@@ -13,6 +13,7 @@ const ACTION_ICONS: Record<ActionType, string> = {
 interface ButtonState {
   pressed: boolean;
   pending?: boolean;
+  blockedUntil?: number;
   success?: boolean;
 }
 
@@ -120,7 +121,7 @@ function App() {
 
     setButtonStates((prev) => ({
       ...prev,
-      [button.id]: { pressed: true, pending: true },
+      [button.id]: { pressed: true, pending: true, blockedUntil: Date.now() + 2500 },
     }));
 
     const message: WSClientMessage = {
@@ -260,17 +261,18 @@ function App() {
                     activeColor = isActive ? 'bg-red-600 animate-pulse' : 'bg-green-600';
                   }
 
+                  const isBlocked = state?.pending || (state?.blockedUntil && state.blockedUntil > Date.now());
+
                   return (
                     <button
                       key={button.id}
                       onClick={() => sendAction(button)}
-                      disabled={!connected || state?.pending}
+                      disabled={!connected || isBlocked}
                       className={`
                         aspect-square rounded-2xl flex flex-col items-center justify-center
                         transition-all duration-150 font-medium
                         ${activeColor}
-                        ${state?.pending ? 'opacity-50 cursor-wait' : ''}
-                        ${!connected ? 'opacity-50' : 'active:scale-95'}
+                        ${isBlocked ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
                         ${state?.pressed ? 'scale-95 opacity-80' : ''}
                         touch-manipulation
                       `}
