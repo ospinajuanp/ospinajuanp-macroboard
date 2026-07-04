@@ -130,15 +130,23 @@ export class OBSClient {
   async toggleMic(): Promise<void> {
     try {
       const { inputs }: any = await this.obs.call('GetInputList', { inputKind: 'audio_input' });
-      const micInput = inputs?.find(
+      console.log('[OBS] Audio inputs found:', inputs);
+
+      if (!inputs || inputs.length === 0) {
+        throw new Error('No audio inputs found in OBS');
+      }
+
+      const micInput = inputs.find(
         (i: any) =>
           i.inputName.toLowerCase().includes('mic') ||
-          i.inputName.toLowerCase().includes('audio')
+          i.inputName.toLowerCase().includes('audio') ||
+          i.inputName.toLowerCase().includes('microphone')
       );
 
-      if (micInput) {
-        await this.obs.call('ToggleInputMute', { inputName: micInput.inputName });
-      }
+      const targetInput = micInput || inputs[0];
+      console.log('[OBS] Toggling mic:', targetInput.inputName);
+
+      await this.obs.call('ToggleInputMute', { inputName: targetInput.inputName });
     } catch (error) {
       console.error('Failed to toggle mic:', error);
       throw error;
