@@ -26,6 +26,7 @@ export class OBSClient {
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private pollInterval: NodeJS.Timeout | null = null;
 
   constructor(config: ServerConfig['obs']) {
     this.config = config;
@@ -43,11 +44,13 @@ export class OBSClient {
     (this.obs as any).on('ConnectionClosed', () => {
       console.log('[OBS] WebSocket disconnected');
       this.updateState({ connected: false });
+      this.stopPolling();
       this.scheduleReconnect();
     });
 
     (this.obs as any).on('Identified', async () => {
       console.log('[OBS] Authentication successful');
+      this.startPolling();
       try {
         const recordState = await this.obs.call('GetRecordStatus');
         console.log('[OBS] Initial record status:', recordState);
@@ -114,6 +117,32 @@ export class OBSClient {
   private updateState(partial: Partial<OBSState>): void {
     this.state = { ...this.state, ...partial };
     this.callbacks.forEach((cb) => cb(this.state));
+  }
+
+  private startPolling(): void {
+    if (this.pollInterval) return;
+    this.pollInterval = setInterval(async () => {
+      if (!this.state.connected) return;
+      try {
+        const [recordStatus, streamStatus] = await Promise.all([
+          this.obs.call('GetRecordStatus'),
+          this.obs.call('GetStreamStatus'),
+        ]);
+        this.updateState({
+          recording: recordStatus.outputActive || false,
+          streaming: streamStatus.outputActive || false,
+        });
+      } catch (e) {
+        // Ignore polling errors
+      }
+    }, 2000);
+  }
+
+  private stopPolling(): void {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
   }
 
   async connect(): Promise<void> {
