@@ -29,14 +29,25 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
   console.log('========================================\n');
 
   app.get('/', async (request, reply) => {
-    const indexPath = path.join(clientDistPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      const content = fs.readFileSync(indexPath, 'utf-8');
+    const adminIndexPath = path.join(adminDistPath, 'index.html');
+    if (fs.existsSync(adminIndexPath)) {
+      const content = fs.readFileSync(adminIndexPath, 'utf-8');
       return reply.type('text/html').send(content);
     }
     return reply
       .type('text/html')
-      .send('<html><body><h1>ospinajuanp-macroboard Server</h1><p>Cliente no encontrado. Ejecuta build del cliente primero.</p></body></html>');
+      .send('<html><body><h1>ospinajuanp-macroboard</h1><p>Pagina no encontrada.</p></body></html>');
+  });
+
+  app.get('/m', async (request, reply) => {
+    const clientIndexPath = path.join(clientDistPath, 'index.html');
+    if (fs.existsSync(clientIndexPath)) {
+      const content = fs.readFileSync(clientIndexPath, 'utf-8');
+      return reply.type('text/html').send(content);
+    }
+    return reply
+      .type('text/html')
+      .send('<html><body><h1>ospinajuanp-macroboard</h1><p>Cliente movil no encontrado.</p></body></html>');
   });
 
   app.get('/admin', async (request, reply) => {
