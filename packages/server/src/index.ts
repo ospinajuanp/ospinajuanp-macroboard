@@ -14,9 +14,8 @@ const CLIENT_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'client', 'dist');
 const ADMIN_DIST_PATH = path.join(PROJECT_ROOT, 'packages', 'admin', 'out');
 
 const DEFAULT_BUTTONS: Record<string, Button> = {
-  default_mic: { id: 'default_mic', row: -1, column: 0, icon: 'mic', action: 'OBS_MUTE', payload: '', label: 'Mic', color: 'bg-blue-600' },
-  default_record: { id: 'default_record', row: -1, column: 1, icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
-  default_stream: { id: 'default_stream', row: -1, column: 2, icon: 'play', action: 'OBS_STREAM', payload: '', label: 'Stream', color: 'bg-red-600' },
+  default_record: { id: 'default_record', row: -1, column: 0, icon: 'stop', action: 'OBS_RECORD', payload: '', label: 'Rec', color: 'bg-red-600' },
+  default_stream: { id: 'default_stream', row: -1, column: 1, icon: 'play', action: 'OBS_STREAM', payload: '', label: 'Stream', color: 'bg-red-600' },
 };
 
 class DeckStreamServer {
