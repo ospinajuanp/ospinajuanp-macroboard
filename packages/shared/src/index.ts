@@ -21,6 +21,7 @@ export interface HotkeyAction {
 
 export interface ServerConfig {
   buttons: Button[];
+  autoOpen?: boolean;
   obs: {
     host: string;
     port: number;

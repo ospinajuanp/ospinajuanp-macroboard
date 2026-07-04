@@ -1,7 +1,9 @@
 import * as path from 'path';
 
 export function isPackaged(): boolean {
-  return process.env.PKG_EXECPATH !== undefined;
+  return process.env.PKG_EXECPATH !== undefined ||
+         (process as any).pkg !== undefined ||
+         process.execPath.endsWith('.exe');
 }
 
 export function getBasePath(): string {

@@ -16,6 +16,6 @@ export async function generateQRCode(url: string): Promise<string> {
   }
 }
 
-export function getConnectionUrl(ip: string, port: number): string {
-  return `http://${ip}:${port}`;
+export function getConnectionUrl(ip: string, port: number, path: string = '/m'): string {
+  return `http://${ip}:${port}${path}`;
 }

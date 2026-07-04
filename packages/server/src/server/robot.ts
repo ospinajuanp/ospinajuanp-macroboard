@@ -1,130 +1,87 @@
-let robot: typeof import('robotjs') | null = null;
+import { keyboard, Key } from '@nut-tree-fork/nut-js';
 
-try {
-  robot = require('robotjs');
-} catch {
-  // robotjs not available
-}
+const KEY_MAP: Record<string, Key> = {
+  ctrl: Key.LeftControl,
+  control: Key.LeftControl,
+  alt: Key.LeftAlt,
+  shift: Key.LeftShift,
+  meta: Key.LeftSuper,
+  cmd: Key.LeftSuper,
+  win: Key.LeftSuper,
+  enter: Key.Enter,
+  return: Key.Enter,
+  escape: Key.Escape,
+  esc: Key.Escape,
+  space: Key.Space,
+  tab: Key.Tab,
+  backspace: Key.Backspace,
+  delete: Key.Delete,
+  del: Key.Delete,
+  up: Key.Up,
+  down: Key.Down,
+  left: Key.Left,
+  right: Key.Right,
+  f1: Key.F1,
+  f2: Key.F2,
+  f3: Key.F3,
+  f4: Key.F4,
+  f5: Key.F5,
+  f6: Key.F6,
+  f7: Key.F7,
+  f8: Key.F8,
+  f9: Key.F9,
+  f10: Key.F10,
+  f11: Key.F11,
+  f12: Key.F12,
+  home: Key.Home,
+  end: Key.End,
+  pageup: Key.PageUp,
+  page_up: Key.PageUp,
+  pagedown: Key.PageDown,
+  page_down: Key.PageDown,
+  insert: Key.Insert,
+};
 
-export interface HotkeyConfig {
-  keys: string[];
+function getKeyFromMap(key: string): Key {
+  const lowerKey = key.toLowerCase();
+  if (KEY_MAP[lowerKey]) {
+    return KEY_MAP[lowerKey];
+  }
+  if (lowerKey.length === 1) {
+    const upperKey = lowerKey.toUpperCase();
+    if (upperKey in Key) {
+      return Key[upperKey as keyof typeof Key];
+    }
+  }
+  return Key.Space;
 }
 
 export class HotkeyManager {
-  private keyMap: Record<string, string> = {
-    ctrl: 'control',
-    control: 'control',
-    alt: 'alt',
-    shift: 'shift',
-    meta: 'command',
-    cmd: 'command',
-    win: 'command',
-    enter: 'enter',
-    return: 'enter',
-    escape: 'escape',
-    esc: 'escape',
-    space: 'space',
-    tab: 'tab',
-    backspace: 'backspace',
-    delete: 'delete',
-    del: 'delete',
-    up: 'up',
-    down: 'down',
-    left: 'left',
-    right: 'right',
-    f1: 'f1',
-    f2: 'f2',
-    f3: 'f3',
-    f4: 'f4',
-    f5: 'f5',
-    f6: 'f6',
-    f7: 'f7',
-    f8: 'f8',
-    f9: 'f9',
-    f10: 'f10',
-    f11: 'f11',
-    f12: 'f12',
-    numlock: 'numlock',
-    num_lock: 'numlock',
-    pause: 'pause',
-    break: 'pause',
-    printscreen: 'print',
-    print: 'print',
-    sysreq: 'print',
-    insert: 'insert',
-    home: 'home',
-    end: 'end',
-    pageup: 'pageup',
-    page_up: 'pageup',
-    pagedown: 'pagedown',
-    page_down: 'pagedown',
-    numpad_0: 'numpad0',
-    numpad_1: 'numpad1',
-    numpad_2: 'numpad2',
-    numpad_3: 'numpad3',
-    numpad_4: 'numpad4',
-    numpad_5: 'numpad5',
-    numpad_6: 'numpad6',
-    numpad_7: 'numpad7',
-    numpad_8: 'numpad8',
-    numpad_9: 'numpad9',
-    numpad_add: 'numpad_add',
-    numpad_subtract: 'numpad_sub',
-    numpad_multiply: 'numpad_mult',
-    numpad_divide: 'numpad_div',
-    numpad_enter: 'numpad_enter',
-    numpad_decimal: 'numpad_dot',
-    numpad_dot: 'numpad_dot',
-    numpad_separator: 'numpad_separator',
-    backquote: 'backquote',
-    quotes: 'quote',
-    apostrophe: "'",
-    minus: 'minus',
-    underscore: 'minus',
-    equal: 'equal',
-    plus: 'equal',
-    bracket_left: 'bracket_left',
-    bracket_right: 'bracket_right',
-    braces_left: 'bracket_left',
-    braces_right: 'bracket_right',
-    backslash: 'backslash',
-    pipe: 'backslash',
-    semicolon: 'semicolon',
-    colon: 'semicolon',
-    comma: 'comma',
-    less: 'comma',
-    period: 'period',
-    greater: 'period',
-    slash: 'slash',
-    question: 'slash',
-  };
-
-  isAvailable(): boolean {
-    return robot !== null;
-  }
-
   async pressHotkey(keys: string[]): Promise<void> {
-    if (!robot) {
-      throw new Error('RobotJS no disponible');
-    }
+    try {
+      const normalizedKeys = keys.map(getKeyFromMap);
 
-    const normalizedKeys = keys.map((k) => this.keyMap[k.toLowerCase()] || k.toLowerCase());
-    const downKeys = normalizedKeys.slice(0, -1);
-    const finalKey = normalizedKeys[normalizedKeys.length - 1];
+      for (const key of normalizedKeys.slice(0, -1)) {
+        await keyboard.pressKey(key);
+      }
 
-    for (const key of downKeys) {
-      robot.keyToggle(key, 'down');
-    }
+      const finalKey = normalizedKeys[normalizedKeys.length - 1];
+      await keyboard.releaseKey(finalKey);
 
-    robot.keyTap(finalKey);
-
-    for (const key of downKeys.reverse()) {
-      robot.keyToggle(key, 'up');
+      for (const key of normalizedKeys.slice(0, -1).reverse()) {
+        await keyboard.releaseKey(key);
+      }
+    } catch (error) {
+      console.error('Error pressing hotkey:', error);
+      throw error;
     }
   }
 
   async typeString(text: string): Promise<void> {
-    if (!robot) return;
-    robot.typeString(text);
+    try {
+      await keyboard.type(text);
+    } catch (error) {
+      console.error('Error typing string:', error);
+    }
   }
 }

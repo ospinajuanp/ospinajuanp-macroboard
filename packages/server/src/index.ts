@@ -7,11 +7,14 @@ import { OBSClient, OBSState } from './server/obs';
 import { HotkeyManager } from './server/robot';
 import { generateQRCode, getConnectionUrl } from './server/qr';
 import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
+import open from 'open';
 
 const DEFAULT_PORT = 3000;
 
 function getStaticPaths() {
-  if (isPackaged()) {
+  const isPkg = isPackaged();
+
+  if (isPkg) {
     const basePath = getBasePath();
     return {
       clientDistPath: path.join(basePath, 'static', 'client'),
@@ -71,15 +74,16 @@ class DeckStreamServer {
     if (!this.httpServer) return;
 
     const { ip, port } = this.httpServer;
-    const url = getConnectionUrl(ip, port);
+    const mobileUrl = getConnectionUrl(ip, port, '/m');
+    const adminUrl = `http://localhost:${port}/admin`;
 
     console.log('========================================');
     console.log('  CONEXION');
     console.log('========================================');
-    console.log(`  URL para movil: ${url}`);
+    console.log(`  URL para movil: ${mobileUrl}`);
     console.log('');
 
-    generateQRCode(url).then((qr) => {
+    generateQRCode(mobileUrl).then((qr) => {
       if (qr) {
         console.log('  Codigo QR generado (ver en el log anterior)');
       }
@@ -88,6 +92,12 @@ class DeckStreamServer {
     console.log('  Cliente movil: Escanea el codigo QR');
     console.log('  Admin UI:     http://localhost:3000/admin');
     console.log('========================================\n');
+
+    if (this.config.autoOpen !== false) {
+      setTimeout(() => {
+        open(adminUrl).catch(() => {});
+      }, 1000);
+    }
   }
 
   private setupOBSConnection(): void {

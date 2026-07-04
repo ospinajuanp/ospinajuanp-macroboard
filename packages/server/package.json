@@ -13,19 +13,20 @@
     "package": "pkg dist/index.js --targets node18-win-x64 --output dist/ospinajuanp-macroboard.exe"
   },
   "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
     "@ospinajuanp-macroboard/shared": "workspace:*",
+    "dotenv": "^16.3.1",
     "fastify": "^4.25.2",
-    "ws": "^8.16.0",
     "obs-websocket-js": "^5.0.0",
-    "robotjs": "^0.6.0",
+    "open": "^11.0.0",
     "qrcode": "^1.5.3",
-    "dotenv": "^16.3.1"
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/ws": "^8.5.10",
     "@types/qrcode": "^1.5.5",
-    "typescript": "^5.3.3",
-    "pkg": "^5.8.1"
+    "@types/ws": "^8.5.10",
+    "pkg": "^5.8.1",
+    "typescript": "^5.3.3"
   }
 }
