@@ -44,6 +44,7 @@ export default function AdminPage() {
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Button>>({});
   const [isNewButton, setIsNewButton] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [obsConnected, setObsConnected] = useState(true);
   const [obsReconnecting, setObsReconnecting] = useState(false);
 
@@ -120,6 +121,7 @@ export default function AdminPage() {
     setSelectedButtonId(null);
     setEditForm({});
     setIsNewButton(false);
+    setShowIconPicker(false);
   };
 
   const handleQuickDelete = (buttonId: string) => {
@@ -233,21 +235,42 @@ export default function AdminPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Icono</label>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {ICON_OPTIONS.map((icon) => (
-                      <button
-                        key={icon.value}
-                        onClick={() => setEditForm({ ...editForm, icon: icon.value })}
-                        className={`
-                          flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xl
-                          ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white` : 'bg-gray-700'}
-                        `}
-                      >
-                        <span>{icon.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => setShowIconPicker(true)}
+                    className="w-full bg-gray-700 rounded-lg px-4 py-3 flex items-center gap-3 text-left"
+                  >
+                    <span className="text-2xl">{ICON_OPTIONS.find(i => i.value === editForm.icon)?.label || '?'}</span>
+                    <span className="text-gray-300">{ICON_OPTIONS.find(i => i.value === editForm.icon)?.label || 'Seleccionar icono'}</span>
+                  </button>
                 </div>
+
+                {showIconPicker && (
+                  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]" onClick={() => setShowIconPicker(false)}>
+                    <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold">Seleccionar Icono</h4>
+                        <button onClick={() => setShowIconPicker(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                      </div>
+                      <div className="grid grid-cols-4 gap-3 max-h-[50vh] overflow-y-auto pr-2">
+                        {ICON_OPTIONS.map((icon) => (
+                          <button
+                            key={icon.value}
+                            onClick={() => {
+                              setEditForm({ ...editForm, icon: icon.value });
+                              setShowIconPicker(false);
+                            }}
+                            className={`
+                              aspect-square rounded-xl flex flex-col items-center justify-center text-3xl transition-all
+                              ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white scale-110` : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'}
+                            `}
+                          >
+                            <span>{icon.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Color</label>
