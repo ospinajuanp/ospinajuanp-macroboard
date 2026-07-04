@@ -1,4 +1,4 @@
-# DeckStream
+# ospinajuanp-macroboard
 
 Controlador Virtual de Macros y Escenas para Streamers.
 
@@ -20,7 +20,7 @@ Transforma cualquier dispositivo móvil en un panel de control táctil y persona
 
 ## Descripción
 
-DeckStream es un software modular micro-SaaS auto-alojado diseñado para Windows. Su propósito es transformar cualquier dispositivo móvil (smartphone o tablet) en un panel de control táctil y personalizable para transmisiones en vivo.
+ospinajuanp-macroboard es un software modular micro-SaaS auto-alojado diseñado para Windows. Su propósito es transformar cualquier dispositivo móvil (smartphone o tablet) en un panel de-control táctil y personalizable para transmisiones en vivo.
 
 El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin necesidad de instalar Node.js o dependencias adicionales.
 
@@ -49,8 +49,7 @@ El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin
 | Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
 | pnpm | latest | [pnpm.io](https://pnpm.io/installation) |
 | Visual Studio Build Tools | 2022 | [visualstudio.microsoft.com](https://visualstudio.microsoft.com/visual-cpp-build-tools/) |
-| OBS Studio | latest | [obsproject.com](https://obsproject.com/) |
-| OBS WebSocket Plugin | latest | [obsproject.com/forum-resources/](https://obsproject.com/forum-resources/) |
+| OBS Studio | 28+ | [obsproject.com](https://obsproject.com/) |
 
 ### Visual Studio Build Tools (para robotjs)
 
@@ -59,12 +58,17 @@ El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin
    - **Desarrollo de escritorio con C++**
 3. Reiniciar el sistema después de la instalación
 
-### OBS Studio - Plugin WebSocket
+### OBS Studio - WebSocket Integrado (OBS 28+)
 
-1. Descargar el plugin desde: [OBS WebSocket Plugin](https://obsproject.com/forum-resources/)
-2. Instalar en la carpeta de plugins de OBS
-3. Habilitar el plugin en OBS Studio → Menú Editar → Configuración → WebSocket
-4. Generar una contraseña y anotar el puerto (por defecto 4455)
+**A partir de OBS Studio 28 (2022), WebSocket viene incluido nativamente.**
+
+1. Abrir OBS Studio
+2. Ir a: **Editar → Configuración → WebSocket**
+3. Marcar **"Habilitar servidor WebSocket"**
+4. Establecer una contraseña y anotar el puerto (por defecto `4455`)
+5. Hacer clic en **"Mostrar conexiones"** para verificar
+
+**Nota sobre la contraseña**: La contraseña de OBS WebSocket es solo un PIN de conexión local entre ospinajuanp-macroboard y OBS en tu PC. No es una contraseña de cuenta ni requiere requisitos especiales de complejidad.
 
 ## Instalación
 
@@ -72,7 +76,7 @@ El sistema se distribuye como un único archivo ejecutable (.exe) portátil, sin
 
 ```bash
 git clone <repository-url>
-cd deckstream
+cd ospinajuanp-macroboard
 ```
 
 ### 2. Instalar Dependencias
@@ -95,10 +99,12 @@ Crear archivo de configuración en `packages/server/config.json`:
   "obs": {
     "host": "localhost",
     "port": 4455,
-    "password": "tu-password"
+    "password": "tu-contraseña-obs"
   }
 }
 ```
+
+**Importante**: El valor de `password` debe coincidir exactamente con la contraseña que configuraste en OBS Studio (**Editar → Configuración → WebSocket**).
 
 ### 4. Configurar IDE (VSCode)
 
@@ -120,7 +126,7 @@ Extensiones recomendadas:
 ## Estructura del Proyecto
 
 ```
-deckstream/
+ospinajuanp-macroboard/
 ├── pnpm-workspace.yaml       # Configuración de workspaces
 ├── package.json              # Paquete root
 ├── README.md                  # Este archivo
@@ -161,9 +167,9 @@ pnpm build
 pnpm dev
 
 # Desarrollo - paquete específico
-pnpm --filter @deckstream/server dev
-pnpm --filter @deckstream/admin dev
-pnpm --filter @deckstream/client dev
+pnpm --filter @ospinajuanp-macroboard/server dev
+pnpm --filter @ospinajuanp-macroboard/admin dev
+pnpm --filter @ospinajuanp-macroboard/client dev
 
 # Linting
 pnpm lint
@@ -182,7 +188,7 @@ pnpm typecheck
 
 ### Emparejamiento con Dispositivo Móvil
 
-1. Iniciar el servidor: `pnpm --filter @deckstream/server dev`
+1. Iniciar el servidor: `pnpm --filter @ospinajuanp-macroboard/server dev`
 2. Abrir navegador en el móvil conectado a la misma red LAN
 3. Escanear el código QR mostrado en la terminal
 4. O acceder manualmente a `http://<IP-DE-LA-PC>:3000`
@@ -224,7 +230,7 @@ pnpm package
 |----------|---------|-----|---------------|
 | [Fastify](https://www.fastify.dev/) | 4.x | [npm](https://www.npmjs.com/package/fastify) | [Docs](https://fastify.dev/docs/) |
 | [ws](https://github.com/websockets/ws) | 8.x | [npm](https://www.npmjs.com/package/ws) | [Docs](https://github.com/websockets/ws) |
-| [obs-websocket-js](https://github.com/Palakis/obs-websocket-js) | 4.x | [npm](https://www.npmjs.com/package/obs-websocket-js) | [Docs](https://github.com/Palakis/obs-websocket-js) |
+| [obs-websocket-js](https://github.com/obs-websocket-community-projects/obs-websocket-js) | 5.x | [npm](https://www.npmjs.com/package/obs-websocket-js) | [Docs](https://github.com/obs-websocket-community-projects/obs-websocket-js) |
 | [robotjs](https://github.com/windows-robotjs/robotjs) | 0.6.x | [npm](https://www.npmjs.com/package/robotjs) | [Docs](https://github.com/windows-robotjs/robotjs) |
 | [qrcode](https://github.com/soldair/node-qrcode) | 1.x | [npm](https://www.npmjs.com/package/qrcode) | [Docs](https://github.com/soldair/node-qrcode) |
 | [pkg](https://github.com/vercel/pkg) | 5.x | [npm](https://www.npmjs.com/package/pkg) | [Docs](https://github.com/vercel/pkg) |
@@ -352,7 +358,7 @@ interface HotkeyAction {
 
 R: No. Una vez empaquetado con `pkg`, el programa se distribuye como un ejecutable portable que incluye Node.js.
 
-### P: ¿Puedo usar DeckStream en Mac o Linux?
+### P: ¿Puedo usar ospinajuanp-macroboard en Mac o Linux?
 
 R: El objetivo principal es Windows. Aunque el código podría adaptarse, algunas librerías como robotjs son específicas de Windows.
 
@@ -363,6 +369,10 @@ R: El servidor detecta automáticamente la IP local y muestra un código QR. Tam
 ### P: ¿El programa funciona sin conexión a internet?
 
 R: Sí. Todo funciona en tu red local (LAN). No requiere conexión externa.
+
+### P: ¿Necesito una contraseña especial para OBS WebSocket?
+
+R: No. La contraseña de OBS WebSocket es solo un PIN local que tú eliges. Puede ser simple (ej: "stream123") ya que solo conecta ospinajuanp-macroboard con OBS en tu propia PC.
 
 ### P: ¿Cómo actualizo la configuración del grid?
 
@@ -378,9 +388,10 @@ R: Accede al panel de administración en `http://localhost:3000/admin` desde tu 
 
 ### OBS WebSocket no conecta
 
-1. Verifica que el plugin esté instalado y habilitado en OBS
-2. Confirma que el puerto y contraseña en `config.json` sean correctos
-3. Asegúrate de que OBS esté corriendo
+1. Verifica que OBS Studio tenga WebSocket habilitado (**Editar → Configuración → WebSocket**)
+2. Confirma que el puerto (por defecto `4455`) y contraseña en `config.json` coincidan exactamente
+3. Asegúrate de que OBS Studio esté corriendo
+4. Si usas OBS 27 o anterior, necesitas [descargar el plugin externo](https://obsproject.com/forum-resources/)
 
 ### El código QR no escanea
 

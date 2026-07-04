@@ -5,7 +5,7 @@ i18n.use(initReactI18next).init({
   resources: {
     es: {
       translation: {
-        title: 'DeckStream',
+        title: 'ospinajuanp-macroboard',
         connecting: 'Conectando...',
         connected: 'Conectado',
         disconnected: 'Desconectado',
@@ -14,7 +14,7 @@ i18n.use(initReactI18next).init({
     },
     en: {
       translation: {
-        title: 'DeckStream',
+        title: 'ospinajuanp-macroboard',
         connecting: 'Connecting...',
         connected: 'Connected',
         disconnected: 'Disconnected',

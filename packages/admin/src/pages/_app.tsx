@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'DeckStream Admin',
-  description: 'Panel de configuración de DeckStream',
+  title: 'ospinajuanp-macroboard Admin',
+  description: 'Panel de configuración de ospinajuanp-macroboard',
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-import { ServerConfig } from '@deckstream/shared';
+import { ServerConfig } from '@ospinajuanp-macroboard/shared';
 
 export const DEFAULT_CONFIG: ServerConfig = {
   grid: {

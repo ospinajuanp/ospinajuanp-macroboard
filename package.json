@@ -1,5 +1,5 @@
 {
-  "name": "deckstream",
+  "name": "ospinajuanp-macroboard",
   "version": "1.0.0",
   "private": true,
   "description": "Controlador Virtual de Macros y Escenas para Streamers",
@@ -8,14 +8,15 @@
   "scripts": {
     "dev": "pnpm -r --parallel --stream dev",
     "build": "pnpm -r build",
-    "build:server": "pnpm --filter @deckstream/server build",
-    "build:admin": "pnpm --filter @deckstream/admin build",
-    "build:client": "pnpm --filter @deckstream/client build",
+    "build:server": "pnpm --filter @ospinajuanp-macroboard/server build",
+    "build:admin": "pnpm --filter @ospinajuanp-macroboard/admin build",
+    "build:client": "pnpm --filter @ospinajuanp-macroboard/client build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "package": "pnpm --filter @deckstream/server package"
+    "package": "pnpm --filter @ospinajuanp-macroboard/server package"
   },
   "devDependencies": {
+    "@tsconfig/node18": "^1.0.0",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   },
