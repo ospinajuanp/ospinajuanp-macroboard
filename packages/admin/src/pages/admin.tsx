@@ -99,6 +99,12 @@ export default function AdminPage() {
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
 
+  const handleCancel = () => {
+    setSelectedButtonId(null);
+    setEditForm({});
+    setIsNewButton(false);
+  };
+
   const handleDeleteButton = () => {
     if (!selectedButtonId) return;
 
@@ -106,6 +112,7 @@ export default function AdminPage() {
     setButtons(newButtons);
     setSelectedButtonId(null);
     setEditForm({});
+    setIsNewButton(false);
 
     sendMessage({ type: 'CONFIG_UPDATE', buttons: newButtons });
   };
@@ -159,8 +166,8 @@ export default function AdminPage() {
         </div>
 
         {selectedButtonId && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleCancel}>
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-xl font-semibold mb-4">{isNewButton ? 'Nuevo Boton' : 'Editar Boton'}</h3>
 
               <div className="space-y-4">
@@ -263,7 +270,7 @@ export default function AdminPage() {
                   Eliminar
                 </button>
                 <button
-                  onClick={() => { setSelectedButtonId(null); setEditForm({}); }}
+                  onClick={handleCancel}
                   className="px-6 bg-gray-600 hover:bg-gray-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
                   Cancelar
