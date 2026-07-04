@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { GridConfig, Button, ActionType, WSClientMessage } from '@ospinajuanp-macroboard/shared';
 
@@ -249,20 +249,26 @@ export default function AdminPage() {
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
                     {editForm.action === 'OBS_SCENE' ? 'Nombre de Escena' :
-                     editForm.action === 'HOTKEY' ? 'Teclas (ej: ctrl+shift+F1)' :
+                     editForm.action === 'HOTKEY' ? 'Presiona las teclas...' :
                      'Macro'}
                   </label>
-                  <input
-                    type="text"
-                    value={editForm.payload || ''}
-                    onChange={(e) => setEditForm({ ...editForm, payload: e.target.value })}
-                    placeholder={
-                      editForm.action === 'OBS_SCENE' ? 'Just Chatting' :
-                      editForm.action === 'HOTKEY' ? 'ctrl+shift+F1' :
-                      'Nombre del macro'
-                    }
-                    className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
-                  />
+                  {editForm.action === 'HOTKEY' ? (
+                    <KeyboardRecorder
+                      value={editForm.payload || ''}
+                      onChange={(keys) => setEditForm({ ...editForm, payload: keys })}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={editForm.payload || ''}
+                      onChange={(e) => setEditForm({ ...editForm, payload: e.target.value })}
+                      placeholder={
+                        editForm.action === 'OBS_SCENE' ? 'Just Chatting' :
+                        'Nombre del macro'
+                      }
+                      className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -339,6 +345,48 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface KeyboardRecorderProps {
+  value: string;
+  onChange: (keys: string) => void;
+}
+
+function KeyboardRecorder({ value, onChange }: KeyboardRecorderProps) {
+  const [recording, setRecording] = React.useState(false);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!recording) return;
+    e.preventDefault();
+
+    const keys: string[] = [];
+    if (e.ctrlKey) keys.push('ctrl');
+    if (e.shiftKey) keys.push('shift');
+    if (e.altKey) keys.push('alt');
+
+    const key = e.key.toUpperCase();
+    if (!['CONTROL', 'SHIFT', 'ALT', 'META'].includes(key)) {
+      keys.push(key);
+    }
+
+    if (keys.length > 0) {
+      onChange(keys.join('+'));
+    }
+  };
+
+  return (
+    <div
+      tabIndex={0}
+      onFocus={() => setRecording(true)}
+      onBlur={() => setRecording(false)}
+      onKeyDown={handleKeyDown}
+      className={`w-full bg-gray-700 rounded-lg px-4 py-3 text-white text-center cursor-text font-mono ${
+        recording ? 'ring-2 ring-deckstream-primary' : ''
+      }`}
+    >
+      {value || (recording ? 'Presiona las teclas...' : 'Click para grabar')}
     </div>
   );
 }
