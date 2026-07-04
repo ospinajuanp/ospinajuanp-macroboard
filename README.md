@@ -18,6 +18,9 @@ Touch controller for streamers with OBS integration. Turns any mobile device int
 - Windows 10/11
 - OBS Studio 28+ con WebSocket habilitado | with WebSocket enabled
 
+### Para crear el Instalador | To Create the Installer
+- [Inno Setup](https://jrsoftware.org/isinfo.php) 6.x
+
 ---
 
 ## Instalación Rápida | Quick Install
@@ -41,20 +44,20 @@ El servidor se ejecuta en la bandeja del sistema. | The server runs in the syste
 
 ## Instalación desde Código Fuente | Installation from Source
 
-### Clonar el Repositorio | Clone the Repository
+### 1. Clonar el Repositorio | Clone the Repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/ospinajuanp/ospinajuanp-macroboard.git
 cd ospinajuanp-macroboard
 ```
 
-### Instalar Dependencias | Install Dependencies
+### 2. Instalar Dependencias | Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### Configurar OBS | Configure OBS
+### 3. Configurar OBS | Configure OBS
 
 1. Abre OBS Studio
 2. Ve a | Go to **Edit → Settings → WebSocket**
@@ -62,7 +65,7 @@ pnpm install
 4. Configura la contraseña | Set password: `Cualquiera1234` (o la que prefieras | or your preferred)
 5. Anota el puerto | Note the port: `4455` (default)
 
-### Configurar config.json
+### 4. Configurar config.json
 
 Crea `packages/server/config.json`:
 
@@ -78,7 +81,7 @@ Crea `packages/server/config.json`:
 }
 ```
 
-### Ejecutar en Desarrollo | Run in Development
+### 5. Ejecutar en Desarrollo | Run in Development
 
 ```bash
 pnpm dev
@@ -95,40 +98,93 @@ Escanea el código QR en la terminal para conectar tu móvil. | Scan the QR code
 
 ## Construir el .exe | Build the .exe
 
+Este paso crea el ejecutable autocontenido. | This step creates the self-contained executable.
+
 ```bash
 pnpm package
 ```
 
-El ejecutable se crea en | Executable created at:
-```
-packages/server/dist/ospinajuanp-macroboard.exe
-```
+Esto hace: | This does:
+1. Construye client y admin | Builds client and admin
+2. Copia archivos estáticos a `dist/static/` | Copies static files to `dist/static/`
+3. Copia scripts a `dist/scripts/` | Copies scripts to `dist/scripts/`
+4. Genera `ospinajuanp-macroboard.exe` | Generates `ospinajuanp-macroboard.exe`
 
-Para distribuir | To distribute:
-1. Copia toda la carpeta `dist/` | Copy the entire `dist/` folder
-2. Ejecuta el .exe | Run the .exe
+**Output:** `packages/server/dist/ospinajuanp-macroboard.exe`
 
 ---
 
-## Crear el Instalador | Create the Installer
+## Crear el Instalador Profesional | Create the Professional Installer
 
-### 1. Descargar Inno Setup
+### Paso 1: Construir el .exe (si no lo has hecho) | Build the .exe (if not done)
+
+```bash
+pnpm package
+```
+
+### Paso 2: Crear directorio para el installer | Create directory for installer
+
+```bash
+mkdir packages/server/installer
+```
+
+### Paso 3: Descargar e Instalar Inno Setup
 
 Descarga desde | Download from: https://jrsoftware.org/isinfo.php
 
-### 2. Abrir el Script
+### Paso 4: Abrir el Script en Inno Setup
 
-Abre en Inno Setup: `packages/server/scripts/installer.iss`
+Abre en Inno Setup el archivo: `packages/server/scripts/installer.iss`
 
-### 3. Compilar | Compile
+### Paso 5: Compilar | Compile
 
-Menú | Menu: **Build → Compile** (o | or `Ctrl+F9`)
+En Inno Setup: **Build → Compile** (o presiona `Ctrl+F9`)
 
-### 4. Output
+### Paso 6: Obtener el Installer
 
-El installer se crea en | Installer created at:
+El installer se crea en: | Installer created at:
 ```
 packages/server/installer/ospinajuanp-macroboard-setup.exe
+```
+
+### Contenido del Script installer.iss | installer.iss Script Contents
+
+El script `installer.iss` incluye: | The script includes:
+
+- Instalación en `Program Files`
+- Creación de acceso directo en Menú Inicio | Start Menu shortcut
+- Creación de acceso directo en Escritorio (opcional) | Desktop shortcut (optional)
+- Opción de lanzar la aplicación después de instalar | Option to launch after install
+- Desinstalador que limpia archivos de configuración | Uninstaller that cleans config files
+- Soporte para español e inglés | Support for Spanish and English
+
+---
+
+## Distribuir | Distribution
+
+### Opción A: Distribuir el .exe directamente | Distribute .exe directly
+
+1. Copia toda la carpeta `dist/` | Copy the entire `dist/` folder
+2. Zippea y distribuye | Zip and distribute
+3. El usuario extrae y ejecuta el .exe | User extracts and runs .exe
+
+### Opción B: Usar el Installer | Use the Installer
+
+1. Distribuye `ospinajuanp-macroboard-setup.exe`
+2. El usuario ejecuta el installer
+3. El installer maneja todo automáticamente | Installer handles everything automatically
+
+### Carpeta `dist/` completa | Complete `dist/` folder
+
+```
+dist/
+├── ospinajuanp-macroboard.exe    # Executable principal | Main executable
+├── static/                       # Archivos estáticos | Static files
+│   ├── client/                   # Cliente móvil | Mobile client
+│   └── admin/                    # Panel admin | Admin panel
+└── scripts/                      # Scripts
+    ├── tray.ps1                  # System tray script
+    └── installer.iss             # Script para Inno Setup | Inno Setup script
 ```
 
 ---
@@ -138,11 +194,11 @@ packages/server/installer/ospinajuanp-macroboard-setup.exe
 Una vez ejecutándose, el servidor aparece en la bandeja del sistema. | Once running, the server appears in the system tray.
 
 ### Menú de la Bandeja | Tray Menu
-- **Abrir Admin | Open Admin**: Abre la UI de administración en el navegador | Opens admin UI in browser
+- **Open Admin**: Abre la UI de administración en el navegador | Opens admin UI in browser
 - **Quit**: Cierra el servidor | Closes the server
 
-###Puertos | Ports
-- `3000`: Admin UI + Cliente móvil (same URL) | Admin UI + Mobile client
+### Puertos | Ports
+- `3000`: Admin UI + Cliente móvil | Admin UI + Mobile client
 - `3001`: WebSocket server para comunicación con clientes | WebSocket server for client communication
 
 ---
@@ -164,6 +220,12 @@ Una vez ejecutándose, el servidor aparece en la bandeja del sistema. | Once run
 ```
 packages/
 ├── server/    # Backend
+│   ├── src/           # Código fuente | Source code
+│   ├── dist/          # Archivos distribuidos | Distributed files
+│   │   ├── ospinajuanp-macroboard.exe
+│   │   ├── static/
+│   │   └── scripts/
+│   └── scripts/       # Scripts de build | Build scripts
 ├── admin/     # Admin panel (Next.js)
 ├── client/    # Mobile PWA (Vite + React)
 └── shared/    # Shared types
@@ -199,3 +261,8 @@ pnpm package      # Crear .exe | Create .exe
 1. Asegúrate de estar en la misma red WiFi | Make sure you're on the same WiFi network
 2. Verifica la IP del servidor | Verify the server IP
 3. Revisa el firewall | Check firewall settings
+
+### Error al compilar el installer | Error compiling installer
+1. Verifica que Inno Setup esté instalado correctamente | Verify Inno Setup is installed correctly
+2. Verifica que `packages/server/dist/` exista y tenga el .exe | Verify `packages/server/dist/` exists and has the .exe
+3. Verifica que la ruta en installer.iss sea correcta | Verify the path in installer.iss is correct
