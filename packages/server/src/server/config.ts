@@ -13,7 +13,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
   obs: {
     host: 'localhost',
     port: 4455,
-    password: 'Cualquiera1234*',
+    password: 'Cualquiera1234',
   },
 };
 
