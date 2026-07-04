@@ -8,7 +8,7 @@ import { generateQRCode, getConnectionUrl } from './server/qr';
 import { WSClientMessage, WSServerMessage, Button } from '@ospinajuanp-macroboard/shared';
 
 const DEFAULT_PORT = 3000;
-const CLIENT_DIST_PATH = path.join(process.cwd(), '..', 'client', 'dist');
+const CLIENT_DIST_PATH = path.join(process.cwd(), 'packages', 'client', 'dist');
 
 class DeckStreamServer {
   private config = loadConfig();
