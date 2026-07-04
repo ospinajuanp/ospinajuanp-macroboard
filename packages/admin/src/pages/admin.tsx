@@ -27,15 +27,15 @@ const ICON_OPTIONS = [
 
 const COLOR_OPTIONS = [
   { value: 'bg-red-600', label: 'Rojo' },
-  { value: 'bg-orange-600', label: 'Naranja' },
-  { value: 'bg-yellow-500', label: 'Amarillo' },
-  { value: 'bg-green-600', label: 'Verde' },
-  { value: 'bg-teal-600', label: 'Teal' },
-  { value: 'bg-blue-600', label: 'Azul' },
-  { value: 'bg-indigo-600', label: 'Indigo' },
+  { value: 'bg-orange-500', label: 'Naranja' },
+  { value: 'bg-yellow-400', label: 'Amarillo' },
+  { value: 'bg-green-500', label: 'Verde' },
+  { value: 'bg-cyan-500', label: 'Cian' },
+  { value: 'bg-blue-500', label: 'Azul' },
   { value: 'bg-purple-600', label: 'Morado' },
-  { value: 'bg-pink-600', label: 'Rosa' },
+  { value: 'bg-pink-500', label: 'Rosa' },
   { value: 'bg-gray-600', label: 'Gris' },
+  { value: 'bg-rose-500', label: 'Rosa fuerte' },
 ];
 
 export default function AdminPage() {
@@ -237,10 +237,9 @@ export default function AdminPage() {
                   <label className="block text-sm text-gray-400 mb-2">Icono</label>
                   <button
                     onClick={() => setShowIconPicker(true)}
-                    className="w-full bg-gray-700 rounded-lg px-4 py-3 flex items-center gap-3 text-left"
+                    className="w-full bg-gray-700 rounded-lg px-4 py-4 flex items-center justify-center"
                   >
-                    <span className="text-2xl">{ICON_OPTIONS.find(i => i.value === editForm.icon)?.label || '?'}</span>
-                    <span className="text-gray-300">{ICON_OPTIONS.find(i => i.value === editForm.icon)?.label || 'Seleccionar icono'}</span>
+                    <span className="text-4xl">{ICON_OPTIONS.find(i => i.value === editForm.icon)?.label || '?'}</span>
                   </button>
                 </div>
 
@@ -261,7 +260,7 @@ export default function AdminPage() {
                             }}
                             className={`
                               aspect-square rounded-xl flex flex-col items-center justify-center text-3xl transition-all
-                              ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white scale-110` : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'}
+                              ${editForm.icon === icon.value ? `${editForm.color || 'bg-deckstream-primary'} ring-2 ring-white` : 'bg-gray-700 hover:bg-gray-600'}
                             `}
                           >
                             <span>{icon.label}</span>
@@ -274,14 +273,14 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Color</label>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="flex flex-wrap gap-2 justify-start">
                     {COLOR_OPTIONS.map((color) => (
                       <button
                         key={color.value}
                         onClick={() => setEditForm({ ...editForm, color: color.value })}
                         className={`
-                          h-10 rounded-lg ${color.value}
-                          ${editForm.color === color.value ? 'ring-2 ring-white' : ''}
+                          w-8 h-8 rounded-lg ${color.value}
+                          ${editForm.color === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-800' : ''}
                         `}
                         title={color.label}
                       />
