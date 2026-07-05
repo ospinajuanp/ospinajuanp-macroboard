@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --macroboard-primary: #6366f1;
+  --macroboard-secondary: #8b5cf6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
