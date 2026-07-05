@@ -77,22 +77,18 @@ class DeckStreamServer {
       return;
     }
 
-    const scriptPath = path.join(BASE_PATH, 'scripts', 'tray.ps1');
-    const scriptExists = fs.existsSync(scriptPath);
+    const trayExePath = path.join(BASE_PATH, 'TrayHelper.exe');
+    const trayExeExists = fs.existsSync(trayExePath);
 
-    if (!scriptExists) {
-      console.log('[System Tray] tray.ps1 not found, skipping');
+    if (!trayExeExists) {
+      console.log('[System Tray] TrayHelper.exe not found, skipping');
       return;
     }
 
     console.log('[System Tray] Starting...');
 
     try {
-      this.trayProcess = spawn('powershell.exe', [
-        '-ExecutionPolicy', 'Bypass',
-        '-NoProfile',
-        '-File', scriptPath
-      ], {
+      this.trayProcess = spawn(trayExePath, [], {
         detached: true,
         stdio: 'ignore',
         windowsHide: true,

@@ -39,9 +39,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 ; Main executable
 Source: "..\dist\ospinajuanp-macroboard.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Tray helper (system tray icon)
+Source: "..\dist\TrayHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; Static files (client and admin builds)
 Source: "..\dist\static\*"; DestDir: "{app}\static"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Scripts (tray.ps1)
+; Scripts (tray.ps1 - fallback)
 Source: "..\dist\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
