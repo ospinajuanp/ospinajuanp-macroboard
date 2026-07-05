@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using System.Drawing;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -26,15 +27,15 @@ static class TrayProgram
         icon.Text = "ospinajuanp-macroboard";
         icon.Visible = true;
 
-        ContextMenu menu = new ContextMenu();
-        menu.MenuItems.Add("Open Admin UI", delegate {
+        ContextMenuStrip menu = new ContextMenuStrip();
+        menu.Items.Add("Open Admin UI", delegate {
             Process.Start("http://localhost:3000/admin");
         });
-        menu.MenuItems.Add("-");
-        menu.MenuItems.Add("Quit", delegate {
+        menu.Items.Add("-");
+        menu.Items.Add("Quit", delegate {
             Quit();
         });
-        icon.ContextMenu = menu;
+        icon.ContextMenuStrip = menu;
 
         icon.DoubleClick += delegate {
             Process.Start("http://localhost:3000/admin");
