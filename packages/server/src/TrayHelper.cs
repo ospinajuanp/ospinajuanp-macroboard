@@ -8,7 +8,6 @@ static class TrayProgram
 {
     private static NotifyIcon icon;
     private static Process serverProc;
-    private static string basePath;
     private static string pidFile;
     private static string quitFile;
 
@@ -17,7 +16,7 @@ static class TrayProgram
     {
         Application.EnableVisualStyles();
 
-        basePath = AppDomain.CurrentDomain.BaseDirectory;
+        string basePath = AppDomain.CurrentDomain.BaseDirectory;
         string exePath = Path.Combine(basePath, "ospinajuanp-macroboard.exe");
         pidFile = Path.Combine(basePath, ".server.pid");
         quitFile = Path.Combine(basePath, ".quit");

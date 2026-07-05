@@ -51,49 +51,31 @@ console.log('Scripts copied.');
 console.log('Package preparation complete!');
 
 function compileTrayHelper() {
-  const csPath = path.join(__dirname, '..', 'src', 'TrayHelper.cs');
+  const csprojPath = path.join(__dirname, '..', 'src', 'TrayHelper.csproj');
   const exePath = path.join(serverDist, 'TrayHelper.exe');
 
-  if (!fs.existsSync(csPath)) {
-    console.log('TrayHelper.cs not found, skipping.');
+  if (!fs.existsSync(csprojPath)) {
+    console.log('TrayHelper.csproj not found, skipping.');
     return;
   }
 
-  // Try dotnet build first (creates self-contained exe)
   try {
-    console.log('Trying dotnet build...');
-    execSync(`dotnet build "${csPath}" -c Release -o "${serverDist}" --self-contained false`, {
+    console.log('Compiling TrayHelper with dotnet...');
+    execSync(`dotnet build "${csprojPath}" -c Release -o "${serverDist}" --nologo -v q`, {
       stdio: 'inherit',
-      timeout: 60000,
-      shell: true
+      timeout: 120000,
+      shell: true,
+      cwd: path.join(__dirname, '..', 'src')
     });
     if (fs.existsSync(exePath)) {
-      console.log('TrayHelper.exe compiled successfully with dotnet.');
-      return;
+      console.log('TrayHelper.exe compiled successfully.');
+    } else {
+      console.log('TrayHelper.exe not found after build.');
     }
   } catch (e) {
-    console.log('dotnet build failed, trying mcs...');
+    console.log('Could not compile TrayHelper.exe:', e.message);
+    console.log('System tray may not work.');
   }
-
-  // Fallback to mcs with explicit references
-  try {
-    console.log('Trying mcs with references...');
-    const refs = ['System.Windows.Forms.dll', 'System.Drawing.dll', 'System.Data.dll', 'System.dll'];
-    const refArgs = refs.map(r => `-r:${r}`).join(' ');
-    execSync(`mcs "${csPath}" -out:"${exePath}" -platform:anycpu ${refArgs}`, {
-      stdio: 'inherit',
-      timeout: 30000,
-      shell: true
-    });
-    if (fs.existsSync(exePath)) {
-      console.log('TrayHelper.exe compiled successfully with mcs.');
-      return;
-    }
-  } catch (e) {
-    console.log('mcs failed:', e.message);
-  }
-
-  console.log('Could not compile TrayHelper.exe. System tray may not work.');
 }
 
 function copyDir(src, dest) {
