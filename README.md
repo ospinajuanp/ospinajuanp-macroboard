@@ -18,9 +18,6 @@ Touch controller for streamers with OBS integration. Turns any mobile device int
 - Windows 10/11
 - OBS Studio 28+ con WebSocket habilitado | with WebSocket enabled
 
-### Para crear el Instalador | To Create the Installer
-- [Inno Setup](https://jrsoftware.org/isinfo.php) 6.x
-
 ---
 
 ## Instalación Rápida | Quick Install
@@ -32,8 +29,6 @@ Touch controller for streamers with OBS integration. Turns any mobile device int
 3. Busca "ospinajuanp-macroboard" en el menú Inicio | Search in Start Menu
 4. ¡Listo! | Done!
 
-El servidor se ejecuta en la bandeja del sistema. | The server runs in the system tray.
-
 ### Usando el .exe Directo | Using the .exe Directly
 
 1. Descarga | Download `ospinajuanp-macroboard.exe` desde | from releases
@@ -42,14 +37,13 @@ El servidor se ejecuta en la bandeja del sistema. | The server runs in the syste
 
 ---
 
-## Instalación desde Código Fuente | Installation from Source
+## Comandos de Producción | Production Commands
 
-### Orden de Comandos | Command Order
+Después de clonar el repositorio, sigue este orden: | After cloning the repository, follow this order:
 
 ```bash
-# 1. Clonar y entrar al repo | Clone and enter repo
-git clone https://github.com/ospinajuanp/ospinajuanp-macroboard.git
-cd ospinajuanp-macroboard
+# 1. Actualizar repositorio | Update repository
+git pull
 
 # 2. Instalar dependencias | Install dependencies
 pnpm install
@@ -60,20 +54,29 @@ pnpm clean
 # 4. Construir todos los paquetes | Build all packages
 pnpm build
 
-# 5. Probar en desarrollo (opcional) | Test in development (optional)
-pnpm dev
+# 5. Preparar archivos estáticos | Prepare static files
+pnpm --filter .\packages\server\ prepackage
 
-# 5b. O probar el .exe localmente | Or test .exe locally
-node packages/server/dist/index.js
-
-# 6. Crear el .exe autocontenido | Create self-contained .exe
+# 6. Crear ejecutable autocontenido | Create self-contained executable
 pnpm package
-
-# 7. Crear directorio para el installer | Create installer directory
-pnpm prepare-installer
 ```
 
-### Configurar OBS | Configure OBS
+### Crear el Instalador | Create the Installer
+
+```bash
+# 7. Crear directorio para el installer | Create installer directory
+pnpm --filter @ospinajuanp-macroboard/server prepare-installer
+
+# 8. Abrir en Inno Setup | Open in Inno Setup
+# Abre: packages/server/scripts/installer.iss
+
+# 9. Compilar en Inno Setup | Compile in Inno Setup
+# Menu: Build -> Compile o Ctrl+F9
+```
+
+---
+
+## Configurar OBS | Configure OBS
 
 1. Abre OBS Studio
 2. Ve a | Go to **Edit → Settings → WebSocket**
@@ -114,81 +117,15 @@ Escanea el código QR en la terminal para conectar tu móvil. | Scan the QR code
 
 ## Construir el .exe | Build the .exe
 
-Este paso crea el ejecutable autocontenido. | This step creates the self-contained executable.
-
 ```bash
 pnpm package
 ```
-
-Esto hace: | This does:
-1. Construye client y admin | Builds client and admin
-2. Copia archivos estáticos a `dist/static/` | Copies static files to `dist/static/`
-3. Copia scripts a `dist/scripts/` | Copies scripts to `dist/scripts/`
-4. Genera `ospinajuanp-macroboard.exe` | Generates `ospinajuanp-macroboard.exe`
 
 **Output:** `packages/server/dist/ospinajuanp-macroboard.exe`
 
 ---
 
-## Crear el Instalador Profesional | Create the Professional Installer
-
-### Paso 1: Construir el .exe (si no lo has hecho) | Build the .exe (if not done)
-
-Ya debiste haber ejecutado | You should have already run:
-```bash
-pnpm package
-pnpm prepare-installer
-```
-
-### Paso 2: Descargar e Instalar Inno Setup
-
-Descarga desde | Download from: https://jrsoftware.org/isinfo.php
-
-### Paso 3: Abrir el Script en Inno Setup
-
-Abre en Inno Setup el archivo: `packages/server/scripts/installer.iss`
-
-### Paso 4: Compilar | Compile
-
-En Inno Setup: **Build → Compile** (o presiona `Ctrl+F9`)
-
-### Paso 5: Obtener el Installer
-
-El installer se crea en: | Installer created at:
-```
-packages/server/installer/ospinajuanp-macroboard-setup.exe
-```
-
----
-
-### Scripts del Installer | Installer Scripts
-
-El instalador incluye: | The installer includes:
-
-- Instalación en `Program Files`
-- Creación de acceso directo en Menú Inicio | Start Menu shortcut
-- Creación de acceso directo en Escritorio (opcional) | Desktop shortcut (optional)
-- Opción de lanzar la aplicación después de instalar | Option to launch after install
-- Desinstalador que limpia archivos de configuración | Uninstaller that cleans config files
-- Soporte para español e inglés | Support for Spanish and English
-
----
-
-## Distribuir | Distribution
-
-### Opción A: Distribuir el .exe directamente | Distribute .exe directly
-
-1. Copia toda la carpeta `dist/` | Copy the entire `dist/` folder
-2. Zippea y distribuye | Zip and distribute
-3. El usuario extrae y ejecuta el .exe | User extracts and runs .exe
-
-### Opción B: Usar el Installer | Use the Installer
-
-1. Distribuye `ospinajuanp-macroboard-setup.exe`
-2. El usuario ejecuta el installer
-3. El installer maneja todo automáticamente | Installer handles everything automatically
-
-### Carpeta `dist/` completa | Complete `dist/` folder
+## Estructura del Dist | Dist Structure
 
 ```
 dist/
@@ -197,23 +134,32 @@ dist/
 │   ├── client/                   # Cliente móvil | Mobile client
 │   └── admin/                    # Panel admin | Admin panel
 └── scripts/                      # Scripts
-    ├── tray.ps1                  # System tray script
+    ├── tray.ps1                  # System tray script (FUTURO)
     └── installer.iss             # Script para Inno Setup | Inno Setup script
 ```
 
 ---
 
-## Usar el Servidor | Using the Server
+## System Tray (Deshabilitado temporalmente | Temporarily Disabled)
 
-Una vez ejecutándose, el servidor aparece en la bandeja del sistema. | Once running, the server appears in the system tray.
+El system tray está **temporalmente deshabilitado** debido a problemas con la compilación de TrayHelper.exe en diferentes sistemas.
 
-### Menú de la Bandeja | Tray Menu
-- **Open Admin**: Abre la UI de administración en el navegador | Opens admin UI in browser
-- **Quit**: Cierra el servidor | Closes the server
+**Estado actual:**
+- La consola de comandos aparece al ejecutar
+- El servidor funciona correctamente
+- La UI del admin está accesible en http://localhost:3000/admin
 
-### Puertos | Ports
-- `3000`: Admin UI + Cliente móvil | Admin UI + Mobile client
-- `3001`: WebSocket server para comunicación con clientes | WebSocket server for client communication
+**Para deshabilitar completamente la consola:**
+Crear un archivo `launcher.vbs` en la misma carpeta que el .exe:
+
+```vbscript
+Set shell = CreateObject("WScript.Shell")
+shell.Run """ospinajuanp-macroboard.exe""", 0, False
+```
+
+**Estado planeado:**
+- Re-habilitar system tray cuando TrayHelper compile de forma más confiable
+- Ocultar consola usando un launcher de C#
 
 ---
 
@@ -221,7 +167,6 @@ Una vez ejecutándose, el servidor aparece en la bandeja del sistema. | Once run
 
 - Integración completa con OBS | Full OBS integration
 - Hotkeys configurables (SendKeys de PowerShell) | Configurable hotkeys (PowerShell SendKeys)
-- Sistema de bandeja | System tray
 - Soporte i18n (Español/Inglés) | i18n support (Spanish/English)
 - PWA para control desde móvil | PWA for mobile control
 - Drag & drop para reordenar botones | Drag & drop to reorder buttons
@@ -250,13 +195,13 @@ packages/
 ## Scripts Disponibles | Available Scripts
 
 ```bash
-pnpm dev                # Ejecutar todos en modo desarrollo | Run all in dev mode
-pnpm build              # Construir todos los paquetes | Build all packages
-pnpm clean              # Limpiar build y config.json | Clean build and config.json
-pnpm lint               # Linting
-pnpm typecheck          # Verificación de tipos | Type checking
-pnpm package            # Crear .exe | Create .exe
-pnpm prepare-installer   # Crear directorio para el installer | Create installer directory
+pnpm dev                  # Ejecutar todos en modo desarrollo | Run all in dev mode
+pnpm build                # Construir todos los paquetes | Build all packages
+pnpm clean                # Limpiar build y config.json | Clean build and config.json
+pnpm lint                 # Linting
+pnpm typecheck            # Verificación de tipos | Type checking
+pnpm package              # Crear .exe | Create .exe
+pnpm prepare-installer    # Crear directorio para el installer | Create installer directory
 ```
 
 ---

@@ -72,52 +72,9 @@ class DeckStreamServer {
   }
 
   private setupSystemTray(): void {
-    if (!isPackaged()) {
-      console.log('[System Tray] Skipping (dev mode)');
-      return;
-    }
-
-    if (process.env.TRAYHELPER_LAUNCHED === '1') {
-      console.log('[System Tray] Launched by TrayHelper, skipping spawn');
-      return;
-    }
-
-    const trayExePath = path.join(BASE_PATH, 'TrayHelper.exe');
-    const trayExeExists = fs.existsSync(trayExePath);
-
-    if (!trayExeExists) {
-      console.log('[System Tray] TrayHelper.exe not found, skipping');
-      return;
-    }
-
-    console.log('[System Tray] Launching TrayHelper...');
-
-    try {
-      const trayEnv = { ...process.env, TRAYHELPER_LAUNCHED: '1' };
-
-      this.trayProcess = spawn(trayExePath, [], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        env: trayEnv,
-      });
-
-      this.trayProcess.on('error', (err) => {
-        console.warn('[System Tray] Failed to start:', err.message);
-      });
-
-      this.quitCheckInterval = setInterval(() => {
-        const quitFile = path.join(BASE_PATH, '.quit');
-        if (fs.existsSync(quitFile)) {
-          fs.unlinkSync(quitFile);
-          this.shutdown();
-        }
-      }, 500);
-
-      console.log('[System Tray] Started successfully');
-    } catch (error) {
-      console.warn('[System Tray] Error:', error);
-    }
+    // TEMPORARILY DISABLED - System tray requires C# compilation which has issues
+    // TODO: Re-enable once TrayHelper compilation is more reliable
+    console.log('[System Tray] DISABLED - See README for details');
   }
 
   private async shutdown(): Promise<void> {
