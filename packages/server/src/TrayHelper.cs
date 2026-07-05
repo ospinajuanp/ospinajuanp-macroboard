@@ -46,7 +46,9 @@ static class TrayProgram
         };
 
         if (File.Exists(exePath)) {
-            serverProc = Process.Start(exePath);
+            ProcessStartInfo psi = new ProcessStartInfo(exePath);
+            psi.Environment["TRAYHELPER_LAUNCHED"] = "1";
+            serverProc = Process.Start(psi);
             File.WriteAllText(pidFile, serverProc.Id.ToString());
         }
 

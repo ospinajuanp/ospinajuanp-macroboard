@@ -77,6 +77,11 @@ class DeckStreamServer {
       return;
     }
 
+    if (process.env.TRAYHELPER_LAUNCHED === '1') {
+      console.log('[System Tray] Launched by TrayHelper, skipping spawn');
+      return;
+    }
+
     const trayExePath = path.join(BASE_PATH, 'TrayHelper.exe');
     const trayExeExists = fs.existsSync(trayExePath);
 
@@ -85,13 +90,16 @@ class DeckStreamServer {
       return;
     }
 
-    console.log('[System Tray] Starting...');
+    console.log('[System Tray] Launching TrayHelper...');
 
     try {
+      const trayEnv = { ...process.env, TRAYHELPER_LAUNCHED: '1' };
+
       this.trayProcess = spawn(trayExePath, [], {
         detached: true,
         stdio: 'ignore',
         windowsHide: true,
+        env: trayEnv,
       });
 
       this.trayProcess.on('error', (err) => {
