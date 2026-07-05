@@ -28,13 +28,17 @@ static class TrayProgram
         icon.Visible = true;
 
         ContextMenuStrip menu = new ContextMenuStrip();
-        menu.Items.Add("Open Admin UI", delegate {
-            Process.Start("http://localhost:3000/admin");
-        });
-        menu.Items.Add("-");
-        menu.Items.Add("Quit", delegate {
-            Quit();
-        });
+
+        ToolStripMenuItem menuOpen = new ToolStripMenuItem("Open Admin UI");
+        menuOpen.Click += delegate { Process.Start("http://localhost:3000/admin"); };
+        menu.Items.Add(menuOpen);
+
+        menu.Items.Add(new ToolStripSeparator());
+
+        ToolStripMenuItem menuQuit = new ToolStripMenuItem("Quit");
+        menuQuit.Click += delegate { Quit(); };
+        menu.Items.Add(menuQuit);
+
         icon.ContextMenuStrip = menu;
 
         icon.DoubleClick += delegate {
