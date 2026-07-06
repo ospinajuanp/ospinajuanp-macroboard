@@ -6,7 +6,6 @@
 #define MyAppPublisher "ospinajuanp"
 #define MyAppURL "https://github.com/ospinajuanp/ospinajuanp-macroboard"
 #define MyAppExeName "ospinajuanp-macroboard.exe"
-#define MyAppLauncherName "MacroboardLauncher.exe"
 
 [Setup]
 AppId={{B5F4E8A1-2C3D-4E5F-9A1B-8C7D6E5F4A3B}
@@ -35,20 +34,18 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 ; Main executable
 Source: "..\dist\ospinajuanp-macroboard.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Launcher (launches main exe without console window)
-Source: "..\dist\MacroboardLauncher.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; Static files (client and admin builds)
 Source: "..\dist\static\*"; DestDir: "{app}\static"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-; Start Menu shortcut - uses launcher to hide console
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppLauncherName}"
-; Desktop shortcut - uses launcher to hide console
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppLauncherName}"; Tasks: desktopicon
+; Start Menu shortcut
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+; Desktop shortcut
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-; Launch via launcher (hides console window)
-Filename: "{app}\{#MyAppLauncherName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; Launch application
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 ; Clean up config files on uninstall

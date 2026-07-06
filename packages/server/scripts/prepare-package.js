@@ -36,9 +36,6 @@ if (fs.existsSync(adminDistSrc)) {
   console.log('Admin built and copied.');
 }
 
-console.log('Compiling MacroboardLauncher...');
-compileLauncher();
-
 console.log('Copying scripts...');
 const scriptsSrc = path.join(__dirname);
 const scriptsDest = path.join(serverDist, 'scripts');
@@ -49,33 +46,6 @@ copyDir(scriptsSrc, scriptsDest);
 console.log('Scripts copied.');
 
 console.log('Package preparation complete!');
-
-function compileLauncher() {
-  const csprojPath = path.join(__dirname, '..', 'src', 'MacroboardLauncher.csproj');
-  const exePath = path.join(serverDist, 'MacroboardLauncher.exe');
-
-  if (!fs.existsSync(csprojPath)) {
-    console.log('MacroboardLauncher.csproj not found, skipping.');
-    return;
-  }
-
-  try {
-    console.log('Compiling MacroboardLauncher with dotnet...');
-    execSync(`dotnet build "${csprojPath}" -c Release -o "${serverDist}" --nologo -v q`, {
-      stdio: 'inherit',
-      timeout: 120000,
-      shell: true,
-      cwd: path.join(__dirname, '..', 'src')
-    });
-    if (fs.existsSync(exePath)) {
-      console.log('MacroboardLauncher.exe compiled successfully.');
-    } else {
-      console.log('MacroboardLauncher.exe not found after build.');
-    }
-  } catch (e) {
-    console.log('Could not compile MacroboardLauncher.exe:', e.message);
-  }
-}
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
