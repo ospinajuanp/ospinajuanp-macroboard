@@ -36,8 +36,8 @@ if (fs.existsSync(adminDistSrc)) {
   console.log('Admin built and copied.');
 }
 
-console.log('Compiling TrayHelper...');
-compileTrayHelper();
+console.log('Compiling MacroboardLauncher...');
+compileLauncher();
 
 console.log('Copying scripts...');
 const scriptsSrc = path.join(__dirname);
@@ -50,17 +50,17 @@ console.log('Scripts copied.');
 
 console.log('Package preparation complete!');
 
-function compileTrayHelper() {
-  const csprojPath = path.join(__dirname, '..', 'src', 'TrayHelper.csproj');
-  const exePath = path.join(serverDist, 'TrayHelper.exe');
+function compileLauncher() {
+  const csprojPath = path.join(__dirname, '..', 'src', 'MacroboardLauncher.csproj');
+  const exePath = path.join(serverDist, 'MacroboardLauncher.exe');
 
   if (!fs.existsSync(csprojPath)) {
-    console.log('TrayHelper.csproj not found, skipping.');
+    console.log('MacroboardLauncher.csproj not found, skipping.');
     return;
   }
 
   try {
-    console.log('Compiling TrayHelper with dotnet...');
+    console.log('Compiling MacroboardLauncher with dotnet...');
     execSync(`dotnet build "${csprojPath}" -c Release -o "${serverDist}" --nologo -v q`, {
       stdio: 'inherit',
       timeout: 120000,
@@ -68,13 +68,12 @@ function compileTrayHelper() {
       cwd: path.join(__dirname, '..', 'src')
     });
     if (fs.existsSync(exePath)) {
-      console.log('TrayHelper.exe compiled successfully.');
+      console.log('MacroboardLauncher.exe compiled successfully.');
     } else {
-      console.log('TrayHelper.exe not found after build.');
+      console.log('MacroboardLauncher.exe not found after build.');
     }
   } catch (e) {
-    console.log('Could not compile TrayHelper.exe:', e.message);
-    console.log('System tray may not work.');
+    console.log('Could not compile MacroboardLauncher.exe:', e.message);
   }
 }
 

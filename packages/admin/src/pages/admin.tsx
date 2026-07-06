@@ -129,6 +129,21 @@ export default function AdminPage() {
   const [obsConnected, setObsConnected] = useState(true);
   const [obsReconnecting, setObsReconnecting] = useState(false);
   const [loadingScenes, setLoadingScenes] = useState(false);
+  const [isShuttingDown, setIsShuttingDown] = useState(false);
+
+  const handleShutdown = async () => {
+    if (isShuttingDown) return;
+    setIsShuttingDown(true);
+    try {
+      await fetch('/api/quit', { method: 'POST' });
+      setTimeout(() => {
+        window.close();
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to shutdown:', error);
+      setIsShuttingDown(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -312,6 +327,13 @@ export default function AdminPage() {
               className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded"
             >
               {i18n.language === 'en' ? 'ES' : 'EN'}
+            </button>
+            <button
+              onClick={handleShutdown}
+              disabled={isShuttingDown}
+              className="px-3 py-1 text-sm bg-red-700 hover:bg-red-600 rounded disabled:opacity-50"
+            >
+              {isShuttingDown ? '...' : '✕ Close'}
             </button>
           </div>
           <div className="flex items-center gap-4 flex-wrap">

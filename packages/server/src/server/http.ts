@@ -118,6 +118,16 @@ export async function createHTTPServer(port: number, clientDistPath: string, adm
     return reply.send({ status: 'ok', timestamp: Date.now() });
   });
 
+  app.post('/api/quit', async (request, reply) => {
+    const quitFile = path.join(process.cwd(), '.quit');
+    try {
+      fs.writeFileSync(quitFile, 'quit');
+      return reply.send({ status: 'ok', message: 'Server shutdown initiated' });
+    } catch (error) {
+      return reply.status(500).send({ status: 'error', message: 'Failed to initiate shutdown' });
+    }
+  });
+
   try {
     await app.listen({ port, host: '0.0.0.0' });
     console.log(`🚀 Servidor HTTP iniciado en http://${ip}:${port}`);
