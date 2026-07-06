@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Windows.Forms;
 
 class MacroboardLauncher
 {
@@ -23,24 +22,37 @@ class MacroboardLauncher
                 Directory.CreateDirectory(appDataPath);
             }
 
+            // Log startup
+            string logPath = Path.Combine(appDataPath, "launcher.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Launcher starting. BasePath: {basePath}\n");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] ExePath: {exePath}\n");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Exe exists: {File.Exists(exePath)}\n");
+
             if (!File.Exists(exePath))
             {
-                MessageBox.Show("Could not find: " + exePath, "MacroboardLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                File.AppendAllText(logPath, $"[{DateTime.Now}] ERROR: Exe not found\n");
                 Environment.Exit(1);
             }
 
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.FileName = exePath;
-            psi.UseShellExecute = true;
+            psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
             psi.WorkingDirectory = basePath;
 
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Starting process...\n");
             Process p = Process.Start(psi);
+            File.AppendAllText(logPath, $"[{DateTime.Now}] Process started with PID: {p.Id}\n");
             Environment.Exit(0);
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Error: " + ex.Message, "MacroboardLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            string appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ospinajuanp-macroboard"
+            );
+            string logPath = Path.Combine(appDataPath, "launcher.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] ERROR: {ex.Message}\n{ex.StackTrace}\n");
             Environment.Exit(1);
         }
     }
