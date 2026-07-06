@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as os from 'os';
 
 export function isPackaged(): boolean {
   return process.env.PKG_EXECPATH !== undefined ||
@@ -14,6 +15,10 @@ export function getBasePath(): string {
 }
 
 export function getConfigPath(): string {
+  if (isPackaged()) {
+    const appDataPath = path.join(os.homedir(), 'AppData', 'Roaming', 'ospinajuanp-macroboard');
+    return path.join(appDataPath, 'config.json');
+  }
   return path.join(getBasePath(), 'config.json');
 }
 
