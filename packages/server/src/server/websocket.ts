@@ -54,11 +54,12 @@ export class WebSocketManager {
       });
 
       ws.on('close', () => {
+        console.log(`Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
       });
 
-      ws.on('error', () => {
-        // handle error silently
+      ws.on('error', (error) => {
+        console.warn(`Client ${clientId} error:`, error.message);
       });
     });
 

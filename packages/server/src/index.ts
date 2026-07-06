@@ -156,12 +156,19 @@ class DeckStreamServer {
         streaming: state.streaming,
         currentScene: state.currentScene || undefined,
       });
+
+      if (state.connected) {
+        console.log('[OBS] Connected successfully');
+      } else if (state.reconnecting) {
+        console.log('[OBS] Connection lost, attempting to reconnect...');
+      } else if (!state.reconnecting && this.obsClient) {
+        console.log('[OBS] Disconnected');
+      }
     });
 
     this.obsClient.connect().catch((error) => {
-      console.warn('Could not connect to OBS:', error.message);
-      console.warn('Server will continue without OBS integration.');
-      this.obsClient = null;
+      console.warn('[OBS] Initial connection failed:', error.message);
+      console.warn('[OBS] Will retry automatically. Server starting...');
     });
   }
 
