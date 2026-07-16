@@ -64,3 +64,12 @@ pnpm clean        # Limpiar build y config.json
 pnpm lint         # Linting
 pnpm typecheck    # TypeScript
 ```
+
+## Licencia
+
+Este proyecto está licenciado bajo la [Polyform Noncommercial License 1.0.0](LICENSE.md).
+
+Eres libre de ver, fork y modificar el código para uso personal, educativo o de portafolio.
+**El uso comercial no está permitido** sin un acuerdo escrito separado del autor.
+
+(c) 2026 Juan Pablo Ospina Restrepo.

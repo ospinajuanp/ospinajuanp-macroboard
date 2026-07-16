@@ -2,6 +2,7 @@
   "name": "@ospinajuanp-macroboard/server",
   "version": "1.0.0",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "main": "./dist/index.js",
   "scripts": {
     "dev": "tsc && node dist/index.js",

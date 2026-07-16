@@ -4,7 +4,7 @@
   "private": true,
   "description": "Controlador Virtual de Macros y Escenas para Streamers",
   "author": "Juan Pablo Ospina Restrepo",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "dev": "pnpm -r --parallel --stream dev",
     "build": "pnpm -r build",

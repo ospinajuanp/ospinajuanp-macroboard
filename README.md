@@ -226,3 +226,19 @@ pnpm prepare-installer    # Crear directorio para el installer | Create installe
 1. Verifica que Inno Setup esté instalado correctamente | Verify Inno Setup is installed correctly
 2. Verifica que `packages/server/dist/` exista y tenga el .exe | Verify `packages/server/dist/` exists and has the .exe
 3. Verifica que la ruta en installer.iss sea correcta | Verify the path in installer.iss is correct
+
+---
+
+## Licencia | License
+
+Este proyecto está licenciado bajo la [Polyform Noncommercial License 1.0.0](LICENSE.md).
+
+This project is licensed under the [Polyform Noncommercial License 1.0.0](LICENSE.md).
+
+Eres libre de ver, fork y modificar el código para uso personal, educativo o de portafolio.
+**El uso comercial no está permitido** sin un acuerdo escrito separado del autor.
+
+You are free to view, fork, and modify the code for personal, educational, or portfolio purposes.
+**Commercial use is not permitted** without a separate written agreement from the author.
+
+(c) 2026 Juan Pablo Ospina Restrepo.
