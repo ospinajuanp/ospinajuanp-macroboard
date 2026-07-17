@@ -23,15 +23,17 @@ Crear `packages/server/config.json`:
 
 ```json
 {
-  "grid": { "rows": 4, "columns": 3 },
-  "buttons": {},
+  "buttons": [],
+  "autoOpen": true,
   "obs": {
     "host": "localhost",
     "port": 4455,
-    "password": "Cualquiera1234"
+    "password": ""
   }
 }
 ```
+
+> La contraseña OBS debe configurarse antes del primer arranque (no hay valor por defecto).
 
 Habilitar WebSocket en OBS: **Editar → Configuración → WebSocket → Habilitar servidor WebSocket**
 
@@ -42,8 +44,7 @@ pnpm dev
 ```
 
 - **Admin**: http://localhost:3000/admin
-- **Cliente móvil**: http://localhost:3000 (o escanear QR en terminal)
-- **Cliente PWA**: http://localhost:3001
+- **Cliente móvil**: http://localhost:3000/m (o escanear QR en terminal)
 
 ## Estructura
 
@@ -52,7 +53,35 @@ packages/
 ├── server/    # Backend (puerto 3000)
 ├── admin/     # Panel admin Next.js (puerto 3000/admin)
 ├── client/    # Cliente móvil PWA (puerto 3001)
-└── shared/    # Tipos compartidos
+├── landing/   # Sitio público (Vercel)
+└── shared/    # Tipos compartidos e i18n
+```
+
+## Estructura interna del server
+
+```
+packages/server/src/
+├── index.ts                # Bootstrap (<60 líneas)
+├── app.ts                  # Factoría de Fastify + WS Manager
+├── lib/
+│   ├── logger.ts           # Logger estructurado sin dependencias
+│   └── errors.ts           # AppError, ValidationError, etc.
+├── ws/
+│   ├── schemas.ts          # Zod schemas para mensajes WS
+│   ├── handlers.ts         # Handlers puros por tipo de mensaje
+│   └── manager.ts          # WebSocketManager (conexión, broadcast)
+├── services/
+│   ├── button.service.ts   # Orquestación de acciones (OBS, hotkeys)
+│   └── config.service.ts   # Persistencia + validación zod
+├── routes/
+│   ├── api.routes.ts       # /api/status, /api/health, /api/quit
+│   └── static.routes.ts    # /, /m, /admin, /assets, /_next
+└── server/                 # Adaptadores de infraestructura
+    ├── obs.ts              # Cliente OBS WebSocket
+    ├── robot.ts            # PowerShell SendKeys (hotkeys)
+    ├── network.ts          # IP local
+    ├── qr.ts               # Generación de QR
+    └── paths.ts            # Rutas (packaged vs dev)
 ```
 
 ## Scripts

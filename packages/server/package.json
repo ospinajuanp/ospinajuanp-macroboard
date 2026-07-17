@@ -18,9 +18,11 @@
     "@ospinajuanp-macroboard/shared": "workspace:*",
     "dotenv": "^16.3.1",
     "fastify": "^4.25.2",
+    "fastify-plugin": "^4.5.1",
     "obs-websocket-js": "^5.0.0",
     "qrcode": "^1.5.3",
-    "ws": "^8.16.0"
+    "ws": "^8.16.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
