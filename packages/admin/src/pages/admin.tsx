@@ -1,4 +1,18 @@
 import React, { useState, useEffect } from 'react';
+function LanguageToggle() {
+  const { i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return (
+    <button
+      onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
+      className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded"
+      suppressHydrationWarning
+    >
+      {mounted ? (i18n.language === 'en' ? 'ES' : 'EN') : 'ES'}
+    </button>
+  );
+}
 import { useWebSocket } from '../hooks/useWebSocket';
 import { Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
@@ -322,12 +336,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-deckstream-primary">
               ospinajuanp-macroboard Admin
             </h1>
-            <button
-              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
-              className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded"
-            >
-              {i18n.language === 'en' ? 'ES' : 'EN'}
-            </button>
+            <LanguageToggle />
             <button
               onClick={handleShutdown}
               disabled={isShuttingDown}

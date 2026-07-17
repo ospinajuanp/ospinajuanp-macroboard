@@ -1,7 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WSClientMessage, WSServerMessage, Button, ActionType } from '@ospinajuanp-macroboard/shared';
 import { useTranslation } from 'react-i18next';
-import i18n from './i18n';
+
+function LanguageToggle() {
+  const { i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return (
+    <button
+      onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
+      className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+      suppressHydrationWarning
+    >
+      {mounted ? (i18n.language === 'en' ? 'ES' : 'EN') : 'ES'}
+    </button>
+  );
+}
 
 const WS_URL = `ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3001`;
 
@@ -182,12 +196,7 @@ function App() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold text-deckstream-primary">{t('title')}</h1>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
-              className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-            >
-              {i18n.language === 'en' ? 'ES' : 'EN'}
-            </button>
+            <LanguageToggle />
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               connected ? 'bg-green-600' : 'bg-red-600'
             }`}>
