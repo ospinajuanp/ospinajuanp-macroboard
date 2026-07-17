@@ -42,6 +42,9 @@ dist-*.exe
 packages/server/config.json
 packages/admin/.env.local
 
+# Runtime artifacts
+.quit
+
 # TypeScript
 *.tsbuildinfo
 
